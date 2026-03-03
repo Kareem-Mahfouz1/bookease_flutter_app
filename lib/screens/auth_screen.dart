@@ -247,10 +247,19 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 24),
                   _OrDivider(isLogin: isLogin),
                   const SizedBox(height: 24),
-                  _GoogleSignInButton(
-                    isLogin: isLogin,
-                    onPressed: () {
-                      // TODO: Implement Google sign in
+                  BlocBuilder<AuthCubit, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state is AuthLoading;
+
+                      return _GoogleSignInButton(
+                        isLogin: isLogin,
+                        isLoading: isLoading,
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                context.read<AuthCubit>().signInWithGoogle();
+                              },
+                      );
                     },
                   ),
                   const SizedBox(height: 24),
@@ -576,9 +585,14 @@ class _OrDivider extends StatelessWidget {
 /// Google sign-in button
 class _GoogleSignInButton extends StatelessWidget {
   final bool isLogin;
-  final VoidCallback onPressed;
+  final bool isLoading;
+  final VoidCallback? onPressed;
 
-  const _GoogleSignInButton({required this.isLogin, required this.onPressed});
+  const _GoogleSignInButton({
+    required this.isLogin,
+    this.isLoading = false,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -587,7 +601,13 @@ class _GoogleSignInButton extends StatelessWidget {
       height: 52,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Image.asset('assets/google_icon.png', height: 20, width: 20),
+        icon: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Image.asset('assets/google_icon.png', height: 20, width: 20),
         label: Text(
           isLogin ? 'Sign in with Google' : 'Sign up with Google',
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),

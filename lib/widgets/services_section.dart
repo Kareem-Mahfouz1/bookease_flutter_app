@@ -1,5 +1,7 @@
+import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/widgets/service_card.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ServicesSection extends StatelessWidget {
   final int itemCount;
@@ -30,6 +32,18 @@ class ServicesSection extends StatelessWidget {
                 description: "Relaxing body massage",
                 duration: "60 min",
                 price: "\$80",
+                onTap: () {
+                  context.push(
+                    Routes.serviceDetails,
+                    extra: {
+                      'serviceName': "Massage Therapy",
+                      'description':
+                          "Experience ultimate relaxation with our signature body massage. Our expert therapists use a combination of techniques to relieve muscle tension, improve circulation, and promote overall well-being. This soothing treatment is tailored to address your specific needs, leaving you feeling refreshed and rejuvenated.",
+                      'duration': "60 min",
+                      'price': "\$80",
+                    },
+                  );
+                },
               ),
             ),
           ),

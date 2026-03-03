@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
 import 'package:appointment_booking/data/models/user_model.dart';
 
@@ -75,6 +76,57 @@ class FirebaseAuthService {
       final user = userCredential.user;
       if (user == null) {
         throw const ServerException('Sign in succeeded but user is null');
+      }
+
+      return UserModel.fromFirebaseUser(user);
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  /// Signs in a user using their Google account
+  ///
+  /// Signs in a user using their Google account
+  ///
+  /// Throws [AuthException] if sign in is aborted or fails
+  Future<UserModel> signInWithGoogle() async {
+    try {
+      final googleSignIn = GoogleSignIn.instance;
+
+      try {
+        await googleSignIn.initialize();
+      } catch (_) {
+        // May already be initialized
+      }
+
+      // Trigger the interactive authentication flow
+      final GoogleSignInAccount account = await googleSignIn.authenticate(
+        scopeHint: ['email'],
+      );
+
+      // Obtain auth details
+      final authz = await account.authorizationClient.authorizationForScopes([
+        'email',
+      ]);
+      final authentication = account.authentication;
+
+      // Create a new credential
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: authz?.accessToken,
+        idToken: authentication.idToken,
+      );
+
+      // Sign in to Firebase with the new credential
+      final UserCredential userCredential = await _firebaseAuth
+          .signInWithCredential(credential);
+
+      final user = userCredential.user;
+      if (user == null) {
+        throw const ServerException(
+          'Google sign in succeeded but user is null',
+        );
       }
 
       return UserModel.fromFirebaseUser(user);

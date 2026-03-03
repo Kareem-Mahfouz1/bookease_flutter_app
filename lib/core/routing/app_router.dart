@@ -8,6 +8,12 @@ import 'package:appointment_booking/screens/error_screen.dart';
 import 'package:appointment_booking/screens/main_screen.dart';
 import 'package:appointment_booking/screens/onboarding_screen.dart';
 import 'package:appointment_booking/screens/splash_screen.dart';
+import 'package:appointment_booking/screens/service_details_screen.dart';
+import 'package:appointment_booking/features/booking/presentation/screens/booking_calendar_screen.dart';
+import 'package:appointment_booking/features/booking/presentation/screens/booking_details_screen.dart';
+import 'package:appointment_booking/features/booking/presentation/screens/booking_success_screen.dart';
+import 'package:appointment_booking/features/booking/presentation/cubit/booking_cubit.dart';
+import 'package:appointment_booking/data/repositories/booking_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -69,6 +75,56 @@ class AppRouter {
             child: const AuthScreen(),
           ),
         ),
+      ),
+      GoRoute(
+        path: Routes.serviceDetails,
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return MaterialPage(
+            key: state.pageKey,
+            child: ServiceDetailsScreen(serviceData: extra),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.bookingCalendar,
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return MaterialPage(
+            key: state.pageKey,
+            // Provide Cubit at the router level so it persists across the booking flow
+            child: BlocProvider(
+              create: (context) => BookingCubit(BookingRepository()),
+              child: BookingCalendarScreen(serviceData: extra),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.bookingDetails,
+        pageBuilder: (context, state) {
+          final cubit = state.extra as BookingCubit;
+          return MaterialPage(
+            key: state.pageKey,
+            child: BlocProvider.value(
+              value: cubit,
+              child: const BookingDetailsScreen(),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.bookingSuccess,
+        pageBuilder: (context, state) {
+          final cubit = state.extra as BookingCubit;
+          return MaterialPage(
+            key: state.pageKey,
+            child: BlocProvider.value(
+              value: cubit,
+              child: const BookingSuccessScreen(),
+            ),
+          );
+        },
       ),
     ],
     errorPageBuilder: (context, state) => MaterialPage(

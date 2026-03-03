@@ -29,7 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: CustomScrollView(
         controller: _scrollController,
-        slivers: const [HeroSection(), ServicesSection()],
+        slivers: const [
+          HeroSection(),
+          ServicesSection(),
+          SliverToBoxAdapter(child: SizedBox(height: 80)),
+        ],
       ),
     );
   }

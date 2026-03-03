@@ -91,6 +91,22 @@ class AuthRepository {
     }
   }
 
+  /// Signs in a user with Google
+  Future<Result<UserModel>> signInWithGoogle() async {
+    try {
+      final user = await _authService.signInWithGoogle();
+
+      // Cache the user data and auth state
+      await _cacheUser(user);
+      await _setAuthState(isAuthenticated: true);
+      return Success(user);
+    } on AppException catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
   /// Signs out the current user
   Future<Result<void>> signOut() async {
     try {
