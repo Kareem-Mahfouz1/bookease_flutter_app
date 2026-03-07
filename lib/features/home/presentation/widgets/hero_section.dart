@@ -1,5 +1,5 @@
-import 'package:appointment_booking/data/repositories/auth_repository.dart';
-import 'package:appointment_booking/widgets/search_field.dart';
+import 'package:appointment_booking/features/auth/data/repositories/auth_repository.dart';
+import 'package:appointment_booking/core/widgets/search_field.dart';
 import 'package:flutter/material.dart';
 
 class HeroSection extends StatelessWidget {

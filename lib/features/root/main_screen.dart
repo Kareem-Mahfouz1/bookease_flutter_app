@@ -1,6 +1,6 @@
-import 'package:appointment_booking/screens/favourites_screen.dart';
-import 'package:appointment_booking/screens/home_screen.dart';
-import 'package:appointment_booking/screens/profile_screen.dart';
+import 'package:appointment_booking/features/favorites/presentation/screens/favourites_screen.dart';
+import 'package:appointment_booking/features/home/presentation/screens/home_screen.dart';
+import 'package:appointment_booking/features/profile/presentation/screens/profile_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/material.dart';
 

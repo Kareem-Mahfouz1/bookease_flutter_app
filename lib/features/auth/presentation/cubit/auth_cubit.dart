@@ -1,4 +1,4 @@
-import 'package:appointment_booking/data/repositories/auth_repository.dart';
+import 'package:appointment_booking/features/auth/data/repositories/auth_repository.dart';
 import 'package:appointment_booking/features/auth/presentation/cubit/auth_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

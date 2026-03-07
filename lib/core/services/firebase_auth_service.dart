@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
-import 'package:appointment_booking/data/models/user_model.dart';
+import 'package:appointment_booking/features/auth/data/models/user_model.dart';
 
 /// Service for handling Firebase Authentication operations
 class FirebaseAuthService {

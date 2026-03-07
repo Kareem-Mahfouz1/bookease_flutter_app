@@ -1,4 +1,4 @@
-import 'package:appointment_booking/data/models/time_slot_model.dart';
+import 'package:appointment_booking/features/booking/data/models/time_slot_model.dart';
 
 class BookingModel {
   final String id;

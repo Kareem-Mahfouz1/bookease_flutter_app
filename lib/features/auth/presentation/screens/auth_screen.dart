@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../widgets/app_text_form_field.dart';
+import 'package:appointment_booking/core/widgets/app_text_form_field.dart';
 
 enum AuthMode { login, signup }
 

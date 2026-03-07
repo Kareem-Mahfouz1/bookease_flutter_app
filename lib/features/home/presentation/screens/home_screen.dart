@@ -1,5 +1,5 @@
-import 'package:appointment_booking/widgets/hero_section.dart';
-import 'package:appointment_booking/widgets/services_section.dart';
+import 'package:appointment_booking/features/home/presentation/widgets/hero_section.dart';
+import 'package:appointment_booking/features/home/presentation/widgets/services_section.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {

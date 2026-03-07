@@ -1,7 +1,7 @@
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
 import 'package:appointment_booking/core/models/result.dart';
-import 'package:appointment_booking/data/models/booking_model.dart';
-import 'package:appointment_booking/data/models/time_slot_model.dart';
+import 'package:appointment_booking/features/booking/data/models/booking_model.dart';
+import 'package:appointment_booking/features/booking/data/models/time_slot_model.dart';
 import 'package:uuid/uuid.dart';
 
 /// Repository for handling booking business logic

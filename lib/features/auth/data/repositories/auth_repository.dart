@@ -4,7 +4,7 @@ import 'package:appointment_booking/core/helpers/constants.dart';
 import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/core/services/firebase_auth_service.dart';
-import 'package:appointment_booking/data/models/user_model.dart';
+import 'package:appointment_booking/features/auth/data/models/user_model.dart';
 
 /// Repository for handling authentication business logic
 ///

@@ -1,5 +1,5 @@
 import 'package:appointment_booking/core/routing/route_names.dart';
-import 'package:appointment_booking/widgets/service_card.dart';
+import 'package:appointment_booking/features/home/presentation/widgets/service_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
