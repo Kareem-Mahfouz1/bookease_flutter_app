@@ -78,34 +78,6 @@ class AppUser extends Equatable {
     };
   }
 
-  /// Converts this [AppUser] to a JSON-serialisable map for local caching.
-  Map<String, dynamic> toJson() {
-    return {
-      'uid': uid,
-      'email': email,
-      'displayName': displayName,
-      'photoUrl': photoUrl,
-      'role': role.name,
-      'authProvider': authProvider.name,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
-
-  /// Creates an [AppUser] from a locally-cached JSON map.
-  factory AppUser.fromJson(Map<String, dynamic> json) {
-    return AppUser(
-      uid: json['uid'] as String,
-      email: json['email'] as String,
-      displayName: json['displayName'] as String?,
-      photoUrl: json['photoUrl'] as String?,
-      role: UserRole.fromString(json['role'] as String? ?? 'customer'),
-      authProvider: AuthProvider.fromString(
-        json['authProvider'] as String? ?? 'email',
-      ),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-    );
-  }
-
   /// Returns a copy of this [AppUser] with updated fields.
   AppUser copyWith({
     String? uid,

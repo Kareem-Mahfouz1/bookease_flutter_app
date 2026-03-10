@@ -38,3 +38,7 @@ class AuthFailure extends AuthState {
 class PasswordResetEmailSent extends AuthState {
   const PasswordResetEmailSent();
 }
+
+class AuthSignedOut extends AuthState {
+  const AuthSignedOut();
+}

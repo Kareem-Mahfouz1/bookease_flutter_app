@@ -3,6 +3,7 @@ import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/core/theme/themes.dart';
 import 'package:appointment_booking/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:appointment_booking/features/auth/presentation/cubit/auth_state.dart';
+import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -131,6 +132,7 @@ class _AuthScreenState extends State<AuthScreen> {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthSuccess) {
+          context.read<ProfileCubit>().loadProfile();
           context.go(Routes.main);
         }
         if (state is AuthFailure) {

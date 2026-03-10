@@ -1,7 +1,4 @@
-import 'dart:convert';
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
-import 'package:appointment_booking/core/helpers/constants.dart';
-import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/core/services/firestore_service.dart';
 import 'package:appointment_booking/features/auth/data/models/app_user.dart';
@@ -54,8 +51,6 @@ class ProfileRepository {
         },
         merge: false,
       );
-
-      await _cacheUser(appUser);
       return Success(appUser);
     } on AppException catch (e) {
       return Failure(e);
@@ -85,29 +80,5 @@ class ProfileRepository {
     } catch (e) {
       return Failure(UnknownException(e.toString()));
     }
-  }
-
-  /// Returns the locally-cached [AppUser], or `null` if none is stored.
-  Future<AppUser?> getCachedUser() async {
-    try {
-      final json = await SharedPrefHelper.getSecuredString(
-        SharedPrefKeys.userToken,
-      );
-      if (json.isEmpty) return null;
-      return AppUser.fromJson(jsonDecode(json) as Map<String, dynamic>);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Cache helpers
-  // ---------------------------------------------------------------------------
-
-  Future<void> _cacheUser(AppUser user) async {
-    await SharedPrefHelper.setSecuredString(
-      SharedPrefKeys.userToken,
-      jsonEncode(user.toJson()),
-    );
   }
 }

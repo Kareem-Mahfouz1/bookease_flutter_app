@@ -21,13 +21,11 @@ class ServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Card(
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
-      color: isDark ? theme.focusColor : null,
       child: InkWell(
         onTap: onTap,
         child: Padding(
