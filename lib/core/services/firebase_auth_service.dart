@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
-import 'package:appointment_booking/features/auth/data/models/user_model.dart';
 
 /// Service for handling Firebase Authentication operations
 class FirebaseAuthService {
@@ -26,7 +25,7 @@ class FirebaseAuthService {
   /// Throws [InvalidEmailException] if email format is invalid
   /// Throws [NetworkException] if there's a network error
   /// Throws [ServerException] for server-side errors
-  Future<UserModel> signUpWithEmailAndPassword({
+  Future<User> signUpWithEmailAndPassword({
     required String email,
     required String password,
     String? displayName,
@@ -48,7 +47,7 @@ class FirebaseAuthService {
         throw const ServerException('User creation succeeded but user is null');
       }
 
-      return UserModel.fromFirebaseUser(user);
+      return user;
     } on FirebaseAuthException catch (e) {
       throw _handleFirebaseAuthException(e);
     } catch (e) {
@@ -63,7 +62,7 @@ class FirebaseAuthService {
   /// Throws [UserDisabledException] if user account is disabled
   /// Throws [TooManyRequestsException] if too many failed attempts
   /// Throws [NetworkException] if there's a network error
-  Future<UserModel> signInWithEmailAndPassword({
+  Future<User> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
@@ -78,7 +77,7 @@ class FirebaseAuthService {
         throw const ServerException('Sign in succeeded but user is null');
       }
 
-      return UserModel.fromFirebaseUser(user);
+      return user;
     } on FirebaseAuthException catch (e) {
       throw _handleFirebaseAuthException(e);
     } catch (e) {
@@ -91,7 +90,7 @@ class FirebaseAuthService {
   /// Signs in a user using their Google account
   ///
   /// Throws [AuthException] if sign in is aborted or fails
-  Future<UserModel> signInWithGoogle() async {
+  Future<User> signInWithGoogle() async {
     try {
       final googleSignIn = GoogleSignIn.instance;
 
@@ -129,7 +128,19 @@ class FirebaseAuthService {
         );
       }
 
-      return UserModel.fromFirebaseUser(user);
+      return user;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw const AuthException(
+          'Google sign in cancelled',
+          code: 'google-sign-in-cancelled',
+        );
+      }
+
+      throw AuthException(
+        e.description ?? 'Google sign in failed',
+        code: 'google-sign-in-failed',
+      );
     } on FirebaseAuthException catch (e) {
       throw _handleFirebaseAuthException(e);
     } catch (e) {

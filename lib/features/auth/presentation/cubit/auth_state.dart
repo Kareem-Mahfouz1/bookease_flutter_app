@@ -3,6 +3,9 @@ import 'package:equatable/equatable.dart';
 sealed class AuthState extends Equatable {
   const AuthState();
 
+  /// Whether any auth operation is currently in progress
+  bool get isLoading => this is AuthLoading || this is GoogleSignInLoading;
+
   @override
   List<Object?> get props => [];
 }
@@ -13,6 +16,10 @@ class AuthInitial extends AuthState {
 
 class AuthLoading extends AuthState {
   const AuthLoading();
+}
+
+class GoogleSignInLoading extends AuthState {
+  const GoogleSignInLoading();
 }
 
 class AuthSuccess extends AuthState {

@@ -1,67 +1,38 @@
-import 'dart:convert';
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
-import 'package:appointment_booking/core/helpers/constants.dart';
 import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/core/services/firebase_auth_service.dart';
-import 'package:appointment_booking/features/auth/data/models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-/// Repository for handling authentication business logic
+/// Repository for handling Firebase Authentication operations.
 ///
-/// Acts as an intermediary between the UI layer (Cubit) and the data layer (Firebase)
-/// Handles result mapping, error handling, and user persistence
+/// Responsible only for auth actions (sign-in, sign-up, sign-out, password
+/// reset). All Firestore user-profile logic lives in [ProfileRepository].
 class AuthRepository {
   final FirebaseAuthService _authService;
 
   AuthRepository({FirebaseAuthService? authService})
     : _authService = authService ?? FirebaseAuthService();
 
-  /// Stream of authentication state changes
-  Stream<UserModel?> get authStateChanges {
-    return _authService.authStateChanges.map((user) {
-      return user != null ? UserModel.fromFirebaseUser(user) : null;
-    });
-  }
+  /// The currently authenticated Firebase user, or `null`.
+  User? get currentUser => _authService.currentUser;
 
-  /// Returns the currently authenticated user from cache or Firebase
-  Future<Result<UserModel?>> getCurrentUser() async {
-    try {
-      final firebaseUser = _authService.currentUser;
-
-      if (firebaseUser != null) {
-        final user = UserModel.fromFirebaseUser(firebaseUser);
-        await _cacheUser(user);
-        return Success(user);
-      }
-
-      // Try to get user from cache if Firebase user is null
-      final cachedUser = await _getCachedUser();
-      return Success(cachedUser);
-    } on AppException catch (e) {
-      return Failure(e);
-    } catch (e) {
-      return Failure(UnknownException(e.toString()));
-    }
-  }
-
-  /// Signs up a new user with email and password
-  Future<Result<UserModel>> signUp({
+  /// Signs up a new user with email and password.
+  ///
+  /// Returns the raw [User] on success so the caller can create the Firestore
+  /// profile afterwards.
+  Future<Result<User>> signUp({
     required String email,
     required String password,
     String? displayName,
   }) async {
     try {
-      final user = await _authService.signUpWithEmailAndPassword(
+      final firebaseUser = await _authService.signUpWithEmailAndPassword(
         email: email,
         password: password,
         displayName: displayName,
       );
-
-      // Cache the user data and auth state
-      await _cacheUser(user);
-      await _setAuthState(isAuthenticated: true);
-
-      return Success(user);
+      return Success(firebaseUser);
     } on AppException catch (e) {
       return Failure(e);
     } catch (e) {
@@ -69,21 +40,17 @@ class AuthRepository {
     }
   }
 
-  /// Signs in an existing user with email and password
-  Future<Result<UserModel>> signIn({
+  /// Signs in an existing user with email and password.
+  Future<Result<User>> signIn({
     required String email,
     required String password,
   }) async {
     try {
-      final user = await _authService.signInWithEmailAndPassword(
+      final firebaseUser = await _authService.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-
-      // Cache the user data and auth state
-      await _cacheUser(user);
-      await _setAuthState(isAuthenticated: true);
-      return Success(user);
+      return Success(firebaseUser);
     } on AppException catch (e) {
       return Failure(e);
     } catch (e) {
@@ -91,15 +58,11 @@ class AuthRepository {
     }
   }
 
-  /// Signs in a user with Google
-  Future<Result<UserModel>> signInWithGoogle() async {
+  /// Signs in a user with Google.
+  Future<Result<User>> signInWithGoogle() async {
     try {
-      final user = await _authService.signInWithGoogle();
-
-      // Cache the user data and auth state
-      await _cacheUser(user);
-      await _setAuthState(isAuthenticated: true);
-      return Success(user);
+      final firebaseUser = await _authService.signInWithGoogle();
+      return Success(firebaseUser);
     } on AppException catch (e) {
       return Failure(e);
     } catch (e) {
@@ -107,15 +70,11 @@ class AuthRepository {
     }
   }
 
-  /// Signs out the current user
+  /// Signs out the current user and clears local state.
   Future<Result<void>> signOut() async {
     try {
       await _authService.signOut();
-
-      // Clear cached user data and auth state
-      await _clearUserCache();
-      await _setAuthState(isAuthenticated: false);
-
+      await SharedPrefHelper.clearAllSecuredData();
       return const Success(null);
     } on AppException catch (e) {
       return Failure(e);
@@ -124,7 +83,7 @@ class AuthRepository {
     }
   }
 
-  /// Sends a password reset email
+  /// Sends a password reset email.
   Future<Result<void>> sendPasswordResetEmail({required String email}) async {
     try {
       await _authService.sendPasswordResetEmail(email: email);
@@ -136,7 +95,7 @@ class AuthRepository {
     }
   }
 
-  /// Sends email verification to the current user
+  /// Sends email verification to the current user.
   Future<Result<void>> sendEmailVerification() async {
     try {
       await _authService.sendEmailVerification();
@@ -148,68 +107,19 @@ class AuthRepository {
     }
   }
 
-  /// Updates the current user's profile
-  Future<Result<UserModel>> updateProfile({String? displayName}) async {
+  /// Updates the current user's Firebase Auth display name.
+  ///
+  /// Call [ProfileRepository.updateProfile] afterwards to sync the change to
+  /// Firestore.
+  Future<Result<void>> updateDisplayName(String displayName) async {
     try {
-      if (displayName != null) {
-        await _authService.updateDisplayName(displayName);
-      }
-
+      await _authService.updateDisplayName(displayName);
       await _authService.reloadUser();
-      final firebaseUser = _authService.currentUser;
-
-      if (firebaseUser == null) {
-        return const Failure(AuthException('User not found after update'));
-      }
-
-      final user = UserModel.fromFirebaseUser(firebaseUser);
-      await _cacheUser(user);
-
-      return Success(user);
+      return const Success(null);
     } on AppException catch (e) {
       return Failure(e);
     } catch (e) {
       return Failure(UnknownException(e.toString()));
     }
-  }
-
-  /// Checks if user is authenticated
-  Future<bool> isAuthenticated() async {
-    final firebaseUser = _authService.currentUser;
-    return firebaseUser != null;
-  }
-
-  // Private helper methods for caching
-
-  /// Caches user data securely
-  Future<void> _cacheUser(UserModel user) async {
-    final userJson = jsonEncode(user.toJson());
-    await SharedPrefHelper.setSecuredString(SharedPrefKeys.userToken, userJson);
-  }
-
-  /// Retrieves cached user data
-  Future<UserModel?> _getCachedUser() async {
-    try {
-      final userJson = await SharedPrefHelper.getSecuredString(
-        SharedPrefKeys.userToken,
-      );
-
-      if (userJson.isEmpty) return null;
-
-      final userMap = jsonDecode(userJson) as Map<String, dynamic>;
-      return UserModel.fromJson(userMap);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Clears cached user data
-  Future<void> _clearUserCache() async {
-    await SharedPrefHelper.clearAllSecuredData();
-  }
-
-  /// Sets authentication state in SharedPreferences
-  Future<void> _setAuthState({required bool isAuthenticated}) async {
-    await SharedPrefHelper.setData(SharedPrefKeys.isLoggedIn, isAuthenticated);
   }
 }

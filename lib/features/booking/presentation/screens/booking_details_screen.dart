@@ -165,10 +165,12 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                           theme,
                         ),
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty)
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please enter your email';
-                          if (!value.contains('@'))
+                          }
+                          if (!value.contains('@')) {
                             return 'Please enter a valid email';
+                          }
                           return null;
                         },
                       ),

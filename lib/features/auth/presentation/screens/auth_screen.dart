@@ -133,7 +133,6 @@ class _AuthScreenState extends State<AuthScreen> {
         if (state is AuthSuccess) {
           context.go(Routes.main);
         }
-
         if (state is AuthFailure) {
           showDialog<void>(
             context: context,
@@ -219,7 +218,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       return _SubmitButton(
                         isLogin: isLogin,
                         isLoading: isLoading,
-                        onPressed: isLoading
+                        onPressed: state.isLoading
                             ? null
                             : () {
                                 if (_formKey.currentState?.validate() ??
@@ -249,12 +248,12 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 24),
                   BlocBuilder<AuthCubit, AuthState>(
                     builder: (context, state) {
-                      final isLoading = state is AuthLoading;
+                      final isLoading = state is GoogleSignInLoading;
 
                       return _GoogleSignInButton(
                         isLogin: isLogin,
                         isLoading: isLoading,
-                        onPressed: isLoading
+                        onPressed: state.isLoading
                             ? null
                             : () {
                                 context.read<AuthCubit>().signInWithGoogle();

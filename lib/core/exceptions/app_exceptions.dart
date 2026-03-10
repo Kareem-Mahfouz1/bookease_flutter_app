@@ -79,3 +79,58 @@ class UnknownException extends AppException {
   const UnknownException([String? message])
     : super(message ?? 'An unexpected error occurred', code: 'unknown-error');
 }
+
+/// Firestore related exceptions
+class FirestoreException extends AppException {
+  const FirestoreException(super.message, {super.code});
+
+  /// Factory constructor that returns appropriate exception based on Firestore error code
+  factory FirestoreException.fromCode(String code, [String? customMessage]) {
+    return switch (code) {
+      'permission-denied' => const FirestoreException(
+        'You do not have permission to perform this action',
+        code: 'permission-denied',
+      ),
+      'not-found' => const FirestoreException(
+        'The requested document was not found',
+        code: 'not-found',
+      ),
+      'already-exists' => const FirestoreException(
+        'The document already exists',
+        code: 'already-exists',
+      ),
+      'resource-exhausted' => const FirestoreException(
+        'Quota exceeded. Please try again later',
+        code: 'resource-exhausted',
+      ),
+      'failed-precondition' => const FirestoreException(
+        'Operation was rejected due to a conflict',
+        code: 'failed-precondition',
+      ),
+      'aborted' => const FirestoreException(
+        'Operation was aborted. Please try again',
+        code: 'aborted',
+      ),
+      'unavailable' => const FirestoreException(
+        'Service is currently unavailable. Please try again later',
+        code: 'unavailable',
+      ),
+      'deadline-exceeded' => const FirestoreException(
+        'Operation timed out. Please try again',
+        code: 'deadline-exceeded',
+      ),
+      'cancelled' => const FirestoreException(
+        'Operation was cancelled',
+        code: 'cancelled',
+      ),
+      'data-loss' => const FirestoreException(
+        'Unrecoverable data loss occurred',
+        code: 'data-loss',
+      ),
+      _ => FirestoreException(
+        customMessage ?? 'A database error occurred',
+        code: code,
+      ),
+    };
+  }
+}

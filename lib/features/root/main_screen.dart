@@ -62,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
                   color: theme.disabledColor,
                   tabs: const [
                     GButton(icon: Icons.home, text: 'Home'),
-                    GButton(icon: Icons.favorite, text: 'Favorites'),
+                    GButton(icon: Icons.event_available, text: 'My Bookings'),
                     GButton(icon: Icons.person, text: 'Profile'),
                   ],
                   selectedIndex: _selectedIndex,

@@ -3,6 +3,7 @@ import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/features/auth/data/repositories/auth_repository.dart';
 import 'package:appointment_booking/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:appointment_booking/features/profile/data/profile_repository.dart';
 import 'package:appointment_booking/features/auth/presentation/screens/auth_screen.dart';
 import 'package:appointment_booking/features/root/error_screen.dart';
 import 'package:appointment_booking/features/root/main_screen.dart';
@@ -71,7 +72,7 @@ class AppRouter {
         pageBuilder: (context, state) => MaterialPage(
           key: state.pageKey,
           child: BlocProvider(
-            create: (_) => AuthCubit(AuthRepository()),
+            create: (_) => AuthCubit(AuthRepository(), ProfileRepository()),
             child: const AuthScreen(),
           ),
         ),
