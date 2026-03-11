@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 
@@ -57,7 +58,7 @@ class _ServiceDetailsAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 250.0,
+      expandedHeight: 260.h,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
@@ -204,9 +205,9 @@ class _ServiceDetailsFloatingButton extends StatelessWidget {
             elevation: 8,
             shadowColor: theme.primaryColor.withValues(alpha: 0.5),
           ),
-          child: const Text(
+          child: Text(
             'Book Now',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
           ),
         ),
       ),

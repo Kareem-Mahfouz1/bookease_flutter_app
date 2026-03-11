@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:appointment_booking/core/widgets/app_text_form_field.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 enum AuthMode { login, signup }
 
@@ -546,9 +547,9 @@ class _SubmitButton extends StatelessWidget {
               )
             : Text(
                 isLogin ? 'Login' : 'Create Account',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),

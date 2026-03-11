@@ -29,15 +29,15 @@ class _ProfileSettingsCardState extends State<ProfileSettingsCard> {
           ),
           Divider(
             height: 1,
-            indent: 60,
-            endIndent: 16,
+            indent: 30,
+            endIndent: 30,
             color: theme.colorScheme.outlineVariant,
           ),
           const _LanguageTile(),
           Divider(
             height: 1,
-            indent: 60,
-            endIndent: 16,
+            indent: 30,
+            endIndent: 30,
             color: theme.colorScheme.outlineVariant,
           ),
           _SignOutTile(onTap: () => _showSignOutDialog(context)),
@@ -90,59 +90,56 @@ class _AppearanceTile extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.contrast_rounded,
-              size: 20,
-              color: theme.colorScheme.onSecondaryContainer,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.contrast_rounded,
+                  size: 20,
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text('Appearance', style: theme.textTheme.bodyLarge),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 2),
-                Text('Appearance', style: theme.textTheme.bodyLarge),
-                const SizedBox(height: 12),
-                SegmentedButton<String>(
-                  showSelectedIcon: false,
-                  style: SegmentedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    textStyle: theme.textTheme.labelSmall,
-                  ),
-                  segments: const [
-                    ButtonSegment(
-                      value: 'light',
-                      icon: Icon(Icons.light_mode_outlined, size: 15),
-                      label: Text('Light'),
-                    ),
-                    ButtonSegment(
-                      value: 'system',
-                      icon: Icon(Icons.brightness_auto_outlined, size: 15),
-                      label: Text('System'),
-                    ),
-                    ButtonSegment(
-                      value: 'dark',
-                      icon: Icon(Icons.dark_mode_outlined, size: 15),
-                      label: Text('Dark'),
-                    ),
-                  ],
-                  selected: {selected},
-                  onSelectionChanged: (value) {
-                    onChanged(value.first);
-                    // TODO: wire up to ThemeCubit
-                  },
+          const SizedBox(height: 12),
+          Center(
+            child: SegmentedButton<String>(
+              showSelectedIcon: false,
+              style: SegmentedButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                textStyle: theme.textTheme.labelSmall,
+              ),
+              segments: const [
+                ButtonSegment(
+                  value: 'light',
+                  icon: Icon(Icons.light_mode_outlined, size: 15),
+                  label: Text('Light'),
+                ),
+                ButtonSegment(
+                  value: 'system',
+                  icon: Icon(Icons.brightness_auto_outlined, size: 15),
+                  label: Text('System'),
+                ),
+                ButtonSegment(
+                  value: 'dark',
+                  icon: Icon(Icons.dark_mode_outlined, size: 15),
+                  label: Text('Dark'),
                 ),
               ],
+              selected: {selected},
+              onSelectionChanged: (value) {
+                onChanged(value.first);
+                // TODO: wire up to ThemeCubit
+              },
             ),
           ),
         ],

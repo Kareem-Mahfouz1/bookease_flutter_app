@@ -8,7 +8,7 @@ class SearchField extends StatelessWidget {
     return TextField(
       decoration: InputDecoration(
         hintText: "Search services...",
-        prefixIcon: Icon(Icons.search),
+        prefixIcon: const Icon(Icons.search),
         filled: true,
         contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
         border: OutlineInputBorder(

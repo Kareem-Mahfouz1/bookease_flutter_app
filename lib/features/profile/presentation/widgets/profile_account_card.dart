@@ -26,8 +26,8 @@ class ProfileAccountCard extends StatelessWidget {
           ),
           Divider(
             height: 1,
-            indent: 60,
-            endIndent: 16,
+            indent: 30,
+            endIndent: 30,
             color: theme.colorScheme.outlineVariant,
           ),
           ProfileIconTile(

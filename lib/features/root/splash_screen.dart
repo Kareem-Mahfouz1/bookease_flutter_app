@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -19,8 +20,8 @@ class SplashScreen extends StatelessWidget {
                 child: Image.asset(
                   'assets/splash.png',
                   fit: BoxFit.cover,
-                  width: 180,
-                  height: 180,
+                  width: 180.r,
+                  height: 180.r,
                 ),
               ),
             ),

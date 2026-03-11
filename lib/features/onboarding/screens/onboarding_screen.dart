@@ -2,6 +2,7 @@ import 'package:appointment_booking/core/helpers/constants.dart';
 import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -173,7 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 28.sp,
                 fontWeight: FontWeight.bold,
                 color: theme.textTheme.bodyLarge?.color,
               ),
@@ -183,14 +184,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               description,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 16.sp,
                 color: theme.textTheme.bodyMedium?.color?.withValues(
                   alpha: 0.7,
                 ),
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 120),
+            SizedBox(height: 120.h),
           ],
         ),
       ),

@@ -3,6 +3,7 @@ import 'package:appointment_booking/features/home/presentation/screens/home_scre
 import 'package:appointment_booking/features/profile/presentation/screens/profile_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -24,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final horizontalMargin = screenWidth > 600 ? 50.0 : 30.0;
-    final bottomMargin = 20.0;
+    final bottomMargin = 20.h;
 
     return Scaffold(
       body: Stack(
@@ -53,10 +54,7 @@ class _MainScreenState extends State<MainScreen> {
                   gap: 8,
                   activeColor: theme.primaryColor,
                   iconSize: 24,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12),
                   duration: const Duration(milliseconds: 200),
                   tabBackgroundColor: theme.primaryColor.withValues(alpha: 0.1),
                   color: theme.disabledColor,

@@ -1,5 +1,6 @@
 import 'package:appointment_booking/features/auth/data/models/app_user.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Top card showing the user's avatar, display name, email and join date.
 class ProfileHeaderCard extends StatelessWidget {
@@ -85,7 +86,7 @@ class _ProfileAvatar extends StatelessWidget {
         radius: 48,
         backgroundImage: NetworkImage(user.photoUrl!),
         backgroundColor: theme.colorScheme.primaryContainer,
-        onBackgroundImageError: (_, __) {},
+        onBackgroundImageError: (exception, stackTrace) {},
       );
     }
 
@@ -110,9 +111,9 @@ class _ProfileAvatar extends StatelessWidget {
       child: Center(
         child: Text(
           _getInitials(user),
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 32,
+            fontSize: 32.sp,
             fontWeight: FontWeight.bold,
             letterSpacing: 1,
           ),

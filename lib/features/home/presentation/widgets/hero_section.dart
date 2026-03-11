@@ -1,6 +1,7 @@
 import 'package:appointment_booking/features/auth/data/repositories/auth_repository.dart';
 import 'package:appointment_booking/core/widgets/search_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HeroSection extends StatelessWidget {
   const HeroSection({super.key});
@@ -11,7 +12,7 @@ class HeroSection extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 220.h,
       floating: true,
       pinned: false,
       elevation: 0,
@@ -82,7 +83,7 @@ class _HeroHeader extends StatelessWidget {
                     text: 'Book',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: 32.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -90,7 +91,7 @@ class _HeroHeader extends StatelessWidget {
                     text: 'Ease',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: 32.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

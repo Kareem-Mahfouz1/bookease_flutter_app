@@ -11,6 +11,7 @@ import 'package:appointment_booking/features/profile/presentation/widgets/profil
 import 'package:appointment_booking/features/profile/presentation/widgets/profile_settings_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -91,18 +92,18 @@ class _ProfileBody extends StatelessWidget {
 
               Center(child: ProfileHeaderCard(user: user)),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               const ProfileSectionLabel(label: 'Account'),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               const ProfileAccountCard(),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               const ProfileSectionLabel(label: 'Settings'),
               const SizedBox(height: 8),
               const ProfileSettingsCard(),
 
               // nav bar clearance
-              const SizedBox(height: 88),
+              SizedBox(height: 100.h),
             ],
           ),
         ),

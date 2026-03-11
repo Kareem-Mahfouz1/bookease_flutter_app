@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
@@ -91,7 +92,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
           return Stack(
             children: [
               SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
+                padding: EdgeInsets.fromLTRB(24.w, 24.h, 24.w, 0),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -99,10 +100,10 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                     children: [
                       // Summary Card
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16.r),
                         decoration: BoxDecoration(
                           color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(16.r),
                           border: Border.all(
                             color: theme.dividerColor.withValues(alpha: 0.5),
                           ),
@@ -118,11 +119,11 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                             ),
                             const Divider(height: 24),
                             _buildSummaryRow('Service', serviceName, theme),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8.h),
                             _buildSummaryRow('Date', dateStr, theme),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8.h),
                             _buildSummaryRow('Time', timeStr, theme),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8.h),
                             _buildSummaryRow(
                               'Total',
                               price,
@@ -133,14 +134,14 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      SizedBox(height: 32.h),
                       Text(
                         'Personal Information',
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16.h),
 
                       TextFormField(
                         controller: _nameController,
@@ -154,7 +155,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                             ? 'Please enter your name'
                             : null,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16.h),
 
                       TextFormField(
                         controller: _emailController,
@@ -174,7 +175,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16.h),
 
                       TextFormField(
                         controller: _phoneController,
@@ -185,7 +186,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                           theme,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16.h),
 
                       TextFormField(
                         controller: _notesController,
@@ -197,7 +198,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 100), // Bottom padding
+                      SizedBox(height: 100.h), // Bottom padding
                     ],
                   ),
                 ),
@@ -218,15 +219,15 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
           final isLoading = state is BookingSubmitting;
 
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: isLoading ? null : _submitBooking,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   backgroundColor: theme.primaryColor,
                   foregroundColor: theme.colorScheme.onPrimary,
@@ -235,18 +236,18 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   shadowColor: theme.primaryColor.withValues(alpha: 0.5),
                 ),
                 child: isLoading
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
+                    ? SizedBox(
+                        height: 24.r,
+                        width: 24.r,
+                        child: const CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         'Confirm Booking',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -301,19 +302,19 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       filled: true,
       fillColor: theme.cardColor,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(
           color: theme.dividerColor.withValues(alpha: 0.5),
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(
           color: theme.dividerColor.withValues(alpha: 0.5),
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: theme.primaryColor),
       ),
     );
