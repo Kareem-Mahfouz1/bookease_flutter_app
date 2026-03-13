@@ -95,7 +95,7 @@ class _ProfileBody extends StatelessWidget {
               SizedBox(height: 24),
               const ProfileSectionLabel(label: 'Account'),
               SizedBox(height: 8),
-              const ProfileAccountCard(),
+              ProfileAccountCard(user: user),
 
               SizedBox(height: 24),
               const ProfileSectionLabel(label: 'Settings'),

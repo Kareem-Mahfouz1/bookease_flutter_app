@@ -17,6 +17,8 @@ class AppTextFormField extends StatelessWidget {
     this.validator,
     this.maxLines = 1,
     this.borderRadius = 12,
+    this.enabled = true,
+    this.isFinal = false,
   });
 
   final TextEditingController? controller;
@@ -32,6 +34,8 @@ class AppTextFormField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final int maxLines;
   final double borderRadius;
+  final bool enabled;
+  final bool isFinal;
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +45,19 @@ class AppTextFormField extends StatelessWidget {
       onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
       controller: controller,
       keyboardType: keyboardType,
-      textInputAction: textInputAction,
+      textInputAction:
+          textInputAction ??
+          (isFinal ? TextInputAction.done : TextInputAction.next),
       obscureText: obscureText,
       onChanged: onChanged,
-      onFieldSubmitted: onFieldSubmitted,
+      onFieldSubmitted:
+          onFieldSubmitted ??
+          (isFinal
+              ? (value) => FocusManager.instance.primaryFocus?.unfocus()
+              : (value) => FocusScope.of(context).nextFocus()),
       validator: validator,
       maxLines: maxLines,
+      enabled: enabled,
       decoration: InputDecoration(
         hintText: hintText,
         prefixIcon: prefixIcon,

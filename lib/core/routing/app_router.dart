@@ -10,6 +10,9 @@ import 'package:appointment_booking/features/home/presentation/screens/service_d
 import 'package:appointment_booking/features/booking/presentation/screens/booking_calendar_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/screens/booking_details_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/screens/booking_success_screen.dart';
+import 'package:appointment_booking/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
+import 'package:appointment_booking/features/profile/presentation/cubit/profile_state.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';
 import 'package:flutter/material.dart';
@@ -116,6 +119,17 @@ class AppRouter {
               value: cubit,
               child: const BookingSuccessScreen(),
             ),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.editProfile,
+        pageBuilder: (context, state) {
+          final profileState = context.read<ProfileCubit>().state;
+          final user = (profileState as ProfileSuccess).user;
+          return MaterialPage(
+            key: state.pageKey,
+            child: EditProfileScreen(user: user),
           );
         },
       ),

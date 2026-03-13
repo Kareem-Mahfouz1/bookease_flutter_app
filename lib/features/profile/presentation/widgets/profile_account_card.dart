@@ -1,9 +1,14 @@
 import 'package:appointment_booking/features/profile/presentation/widgets/profile_icon_tile.dart';
+import 'package:appointment_booking/features/auth/data/models/app_user.dart';
+import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 /// Card containing account-level actions: Edit Profile and Change Password.
 class ProfileAccountCard extends StatelessWidget {
-  const ProfileAccountCard({super.key});
+  final AppUser user;
+
+  const ProfileAccountCard({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +26,7 @@ class ProfileAccountCard extends StatelessWidget {
             title: 'Edit Profile',
             subtitle: 'Update your name and photo',
             onTap: () {
-              // TODO: navigate to edit profile
+              context.push(Routes.editProfile);
             },
           ),
           Divider(

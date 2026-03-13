@@ -2,7 +2,6 @@ import 'package:appointment_booking/features/auth/data/models/app_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// Top card showing the user's avatar, display name, email and join date.
 class ProfileHeaderCard extends StatelessWidget {
   final AppUser user;
 
@@ -68,8 +67,6 @@ class ProfileHeaderCard extends StatelessWidget {
     return '${months[date.month - 1]} ${date.year}';
   }
 }
-
-// ─── Avatar ───────────────────────────────────────────────────────────────────
 
 class _ProfileAvatar extends StatelessWidget {
   final AppUser user;

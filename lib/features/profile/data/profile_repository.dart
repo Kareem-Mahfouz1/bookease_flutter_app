@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
 import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/core/services/firestore_service.dart';
+import 'package:appointment_booking/core/services/storage_service.dart';
 import 'package:appointment_booking/features/auth/data/models/app_user.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
@@ -9,11 +11,15 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 /// All operations target the `users/{uid}` collection.
 class ProfileRepository {
   final FirestoreService _firestoreService;
+  final StorageService _storageService;
 
   static const _collection = 'users';
 
-  ProfileRepository({FirestoreService? firestoreService})
-    : _firestoreService = firestoreService ?? FirestoreService();
+  ProfileRepository({
+    FirestoreService? firestoreService,
+    StorageService? storageService,
+  }) : _firestoreService = firestoreService ?? FirestoreService(),
+       _storageService = storageService ?? StorageService();
 
   /// Creates a new user profile document at `users/{firebaseUser.uid}`.
   ///
@@ -75,6 +81,76 @@ class ProfileRepository {
       }
 
       return Success(AppUser.fromFirestore(data));
+    } on AppException catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  /// Updates specific fields on the user profile document at `users/{uid}`.
+  Future<Result<void>> updateUser(String uid, Map<String, dynamic> data) async {
+    try {
+      await _firestoreService.updateDocument(
+        documentPath: '$_collection/$uid',
+        data: data,
+      );
+      return const Success(null);
+    } on AppException catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  /// Updates the user's profile information handling name change and image upload.
+  Future<Result<(AppUser, String?)>> updateProfileInfo({
+    required String uid,
+    required AppUser currentUser,
+    String? newName,
+    File? imageFile,
+  }) async {
+    try {
+      Map<String, dynamic> updateData = {};
+      if (newName != null && newName != currentUser.displayName) {
+        updateData['displayName'] = newName;
+      }
+
+      // Update basic profile details first
+      if (updateData.isNotEmpty) {
+        await _firestoreService.updateDocument(
+          documentPath: '$_collection/$uid',
+          data: updateData,
+        );
+      }
+
+      AppUser updatedUser = currentUser.copyWith(
+        displayName: newName ?? currentUser.displayName,
+      );
+
+      String? partialError;
+
+      // Image upload phase
+      if (imageFile != null) {
+        try {
+          final downloadUrl = await _storageService.uploadProfileImage(
+            userId: uid,
+            imageFile: imageFile,
+          );
+
+          // Save the new URL to Firestore
+          await _firestoreService.updateDocument(
+            documentPath: '$_collection/$uid',
+            data: {'photoUrl': downloadUrl},
+          );
+
+          updatedUser = updatedUser.copyWith(photoUrl: downloadUrl);
+        } catch (e) {
+          partialError = 'Image upload failed: $e';
+        }
+      }
+
+      return Success((updatedUser, partialError));
     } on AppException catch (e) {
       return Failure(e);
     } catch (e) {

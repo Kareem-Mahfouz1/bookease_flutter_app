@@ -18,11 +18,12 @@ class ProfileLoading extends ProfileState {
 
 class ProfileSuccess extends ProfileState {
   final AppUser user;
+  final String? partialErrorMessage;
 
-  const ProfileSuccess(this.user);
+  const ProfileSuccess(this.user, {this.partialErrorMessage});
 
   @override
-  List<Object?> get props => [user];
+  List<Object?> get props => [user, partialErrorMessage];
 }
 
 class ProfileFailure extends ProfileState {
