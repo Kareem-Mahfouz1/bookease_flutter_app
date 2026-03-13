@@ -1,3 +1,4 @@
+import 'package:appointment_booking/core/theme/theme_cubit.dart';
 import 'package:appointment_booking/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,12 +12,10 @@ class ProfileSettingsCard extends StatefulWidget {
 }
 
 class _ProfileSettingsCardState extends State<ProfileSettingsCard> {
-  // UI-only for now; wired up when ThemeCubit is implemented
-  String _selectedAppearance = 'system';
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeMode = context.watch<ThemeCubit>().state;
 
     return Card(
       elevation: 0,
@@ -24,8 +23,21 @@ class _ProfileSettingsCardState extends State<ProfileSettingsCard> {
       child: Column(
         children: [
           _AppearanceTile(
-            selected: _selectedAppearance,
-            onChanged: (value) => setState(() => _selectedAppearance = value),
+            selected: themeMode.name,
+            onChanged: (value) {
+              ThemeMode mode;
+              switch (value) {
+                case 'light':
+                  mode = ThemeMode.light;
+                  break;
+                case 'dark':
+                  mode = ThemeMode.dark;
+                  break;
+                default:
+                  mode = ThemeMode.system;
+              }
+              context.read<ThemeCubit>().changeTheme(mode);
+            },
           ),
           Divider(
             height: 1,
@@ -138,7 +150,6 @@ class _AppearanceTile extends StatelessWidget {
               selected: {selected},
               onSelectionChanged: (value) {
                 onChanged(value.first);
-                // TODO: wire up to ThemeCubit
               },
             ),
           ),

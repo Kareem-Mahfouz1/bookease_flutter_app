@@ -59,5 +59,4 @@ class DefaultFirebaseOptions {
     projectId: 'bookease-39d4d',
     storageBucket: 'bookease-39d4d.firebasestorage.app',
   );
-
 }

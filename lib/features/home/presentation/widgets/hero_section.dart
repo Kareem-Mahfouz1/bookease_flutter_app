@@ -12,7 +12,7 @@ class HeroSection extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return SliverAppBar(
-      expandedHeight: 220.h,
+      expandedHeight: 190.h,
       floating: true,
       pinned: false,
       elevation: 0,
