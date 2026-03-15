@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_state.dart';
+import 'package:appointment_booking/core/widgets/app_text_form_field.dart';
+import 'package:appointment_booking/core/helpers/validators.dart';
 
 class BookingDetailsScreen extends StatefulWidget {
   const BookingDetailsScreen({super.key});
@@ -20,12 +22,20 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
 
+  final _emailFocusNode = FocusNode();
+  final _phoneFocusNode = FocusNode();
+  final _notesFocusNode = FocusNode();
+
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
+
+    _emailFocusNode.dispose();
+    _phoneFocusNode.dispose();
+    _notesFocusNode.dispose();
     super.dispose();
   }
 
@@ -52,9 +62,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       );
     }
 
-    final serviceName =
-        cubit.selectedServiceData!['serviceName'] as String? ?? 'Service';
-    final price = cubit.selectedServiceData!['price'] as String? ?? 'N/A';
+    final serviceName = cubit.selectedServiceData!.name;
+    final price = cubit.selectedServiceData!.price;
     final slot = cubit.selectedTimeSlot!;
 
     final dateStr =
@@ -126,7 +135,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                             SizedBox(height: 8.h),
                             _buildSummaryRow(
                               'Total',
-                              price,
+                              price.toStringAsFixed(2),
                               theme,
                               isTotal: true,
                             ),
@@ -143,62 +152,73 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                       ),
                       SizedBox(height: 16.h),
 
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: _buildInputDecoration(
-                          'Full Name',
-                          Icons.person_outline,
-                          theme,
+                      Theme(
+                        data: theme.copyWith(
+                          inputDecorationTheme: _buildInputDecorationTheme(
+                            theme,
+                          ),
                         ),
-                        validator: (value) =>
-                            value == null || value.trim().isEmpty
-                            ? 'Please enter your name'
-                            : null,
-                      ),
-                      SizedBox(height: 16.h),
-
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: _buildInputDecoration(
-                          'Email Address',
-                          Icons.email_outlined,
-                          theme,
+                        child: Column(
+                          children: [
+                            AppTextFormField(
+                              controller: _nameController,
+                              hintText: 'Full Name',
+                              textInputAction: TextInputAction.next,
+                              onFieldSubmitted: (_) =>
+                                  _emailFocusNode.requestFocus(),
+                              prefixIcon: Icon(
+                                Icons.person_outline,
+                                color: theme.disabledColor,
+                              ),
+                              validator: Validators.name,
+                            ),
+                            SizedBox(height: 16.h),
+                            AppTextFormField(
+                              controller: _emailController,
+                              focusNode: _emailFocusNode,
+                              keyboardType: TextInputType.emailAddress,
+                              hintText: 'Email Address',
+                              textInputAction: TextInputAction.next,
+                              onFieldSubmitted: (_) =>
+                                  _phoneFocusNode.requestFocus(),
+                              prefixIcon: Icon(
+                                Icons.email_outlined,
+                                color: theme.disabledColor,
+                              ),
+                              validator: Validators.email,
+                            ),
+                            SizedBox(height: 16.h),
+                            AppTextFormField(
+                              controller: _phoneController,
+                              focusNode: _phoneFocusNode,
+                              keyboardType: TextInputType.phone,
+                              hintText: 'Phone Number (Optional)',
+                              textInputAction: TextInputAction.next,
+                              onFieldSubmitted: (_) =>
+                                  _notesFocusNode.requestFocus(),
+                              prefixIcon: Icon(
+                                Icons.phone_outlined,
+                                color: theme.disabledColor,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            AppTextFormField(
+                              controller: _notesController,
+                              focusNode: _notesFocusNode,
+                              maxLines: 3,
+                              hintText: 'Additional Notes (Optional)',
+                              isFinal: true,
+                              textInputAction: TextInputAction.done,
+                              prefixIcon: Icon(
+                                Icons.note_alt_outlined,
+                                color: theme.disabledColor,
+                              ),
+                            ),
+                          ],
                         ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 16.h),
-
-                      TextFormField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: _buildInputDecoration(
-                          'Phone Number (Optional)',
-                          Icons.phone_outlined,
-                          theme,
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-
-                      TextFormField(
-                        controller: _notesController,
-                        maxLines: 3,
-                        decoration: _buildInputDecoration(
-                          'Additional Notes (Optional)',
-                          Icons.note_alt_outlined,
-                          theme,
-                        ),
                       ),
 
-                      SizedBox(height: 100.h), // Bottom padding
+                      SizedBox(height: 80.h), // Bottom padding
                     ],
                   ),
                 ),
@@ -214,48 +234,50 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: BlocBuilder<BookingCubit, BookingState>(
-        builder: (context, state) {
-          final isLoading = state is BookingSubmitting;
+      floatingActionButton: MediaQuery.of(context).viewInsets.bottom > 0
+          ? null
+          : BlocBuilder<BookingCubit, BookingState>(
+              builder: (context, state) {
+                final isLoading = state is BookingSubmitting;
 
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : _submitBooking,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  backgroundColor: theme.primaryColor,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  disabledBackgroundColor: theme.disabledColor,
-                  elevation: 8,
-                  shadowColor: theme.primaryColor.withValues(alpha: 0.5),
-                ),
-                child: isLoading
-                    ? SizedBox(
-                        height: 24.r,
-                        width: 24.r,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : _submitBooking,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
-                      )
-                    : Text(
-                        'Confirm Booking',
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        backgroundColor: theme.primaryColor,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        disabledBackgroundColor: theme.disabledColor,
+                        elevation: 8,
+                        shadowColor: theme.primaryColor.withValues(alpha: 0.5),
                       ),
-              ),
+                      child: isLoading
+                          ? SizedBox(
+                              height: 24.r,
+                              width: 24.r,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              'Confirm Booking',
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -291,14 +313,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     );
   }
 
-  InputDecoration _buildInputDecoration(
-    String hint,
-    IconData icon,
-    ThemeData theme,
-  ) {
-    return InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon, color: theme.disabledColor),
+  InputDecorationTheme _buildInputDecorationTheme(ThemeData theme) {
+    return InputDecorationTheme(
       filled: true,
       fillColor: theme.cardColor,
       border: OutlineInputBorder(

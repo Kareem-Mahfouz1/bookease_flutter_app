@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_state.dart';
 import 'package:appointment_booking/features/booking/data/models/time_slot_model.dart';
+import 'package:appointment_booking/core/models/service_model.dart';
 
 class BookingCubit extends Cubit<BookingState> {
   final BookingRepository _bookingRepository;
@@ -9,11 +10,11 @@ class BookingCubit extends Cubit<BookingState> {
   // Selected state we need to hold onto throughout the flow
   DateTime? selectedDate;
   TimeSlotModel? selectedTimeSlot;
-  Map<String, dynamic>? selectedServiceData;
+  ServiceModel? selectedServiceData;
 
   BookingCubit(this._bookingRepository) : super(const BookingInitial());
 
-  void setServiceData(Map<String, dynamic> serviceData) {
+  void setServiceData(ServiceModel serviceData) {
     selectedServiceData = serviceData;
   }
 
@@ -34,8 +35,7 @@ class BookingCubit extends Cubit<BookingState> {
 
     emit(const BookingLoadingSlots());
 
-    final serviceId =
-        selectedServiceData!['serviceId'] as String? ?? 'custom-id-fallback';
+    final serviceId = selectedServiceData!.id;
 
     final result = await _bookingRepository.getAvailableTimeSlots(
       date: date,
@@ -62,10 +62,8 @@ class BookingCubit extends Cubit<BookingState> {
 
     emit(const BookingSubmitting());
 
-    final serviceId =
-        selectedServiceData!['serviceId'] as String? ?? 'custom-id-fallback';
-    final serviceName =
-        selectedServiceData!['serviceName'] as String? ?? 'Service';
+    final serviceId = selectedServiceData!.id;
+    final serviceName = selectedServiceData!.name;
 
     final result = await _bookingRepository.submitBooking(
       serviceId: serviceId,

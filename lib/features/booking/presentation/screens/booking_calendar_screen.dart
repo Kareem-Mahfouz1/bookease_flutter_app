@@ -1,3 +1,4 @@
+import 'package:appointment_booking/core/models/service_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,9 +7,9 @@ import 'package:appointment_booking/features/booking/presentation/cubit/booking_
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_state.dart';
 
 class BookingCalendarScreen extends StatefulWidget {
-  final Map<String, dynamic> serviceData;
+  final ServiceModel service;
 
-  const BookingCalendarScreen({super.key, required this.serviceData});
+  const BookingCalendarScreen({super.key, required this.service});
 
   @override
   State<BookingCalendarScreen> createState() => _BookingCalendarScreenState();
@@ -22,7 +23,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
     super.initState();
     // Initialize standard state in Cubit
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BookingCubit>().setServiceData(widget.serviceData);
+      context.read<BookingCubit>().setServiceData(widget.service);
 
       // Select today by default
       _selectedDay = DateTime.now();
@@ -33,8 +34,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final serviceName =
-        widget.serviceData['serviceName'] as String? ?? 'Booking';
+    final serviceName = widget.service.name;
 
     return Scaffold(
       appBar: AppBar(

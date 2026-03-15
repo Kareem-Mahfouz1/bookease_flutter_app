@@ -1,6 +1,8 @@
 import 'package:appointment_booking/features/home/presentation/widgets/hero_section.dart';
 import 'package:appointment_booking/features/home/presentation/widgets/services_section.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:appointment_booking/features/home/logic/home_cubit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,13 +29,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: const [
-          HeroSection(),
-          ServicesSection(),
-          SliverToBoxAdapter(child: SizedBox(height: 80)),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () => context.read<HomeCubit>().refreshServices(),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: const [
+            HeroSection(),
+            ServicesSection(),
+            SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
+        ),
       ),
     );
   }

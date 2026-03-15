@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
+import 'package:appointment_booking/core/models/service_model.dart';
 
 class ServiceDetailsScreen extends StatelessWidget {
-  final Map<String, dynamic> serviceData;
+  final ServiceModel service;
 
-  const ServiceDetailsScreen({super.key, required this.serviceData});
+  const ServiceDetailsScreen({super.key, required this.service});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final serviceName = serviceData['serviceName'] as String? ?? 'Service';
-    final description =
-        serviceData['description'] as String? ?? 'Description not available.';
-    final duration = serviceData['duration'] as String? ?? 'N/A';
-    final price = serviceData['price'] as String? ?? 'N/A';
-    final imageUrl = serviceData['imageUrl'] as String?;
+    final serviceName = service.name;
+    final description = service.description;
+    final duration = service.durationMinutes.toString();
+    final price = service.price.toString();
+    final imageUrl = service.imageUrl;
+    final rating = service.rating;
 
     return Scaffold(
       body: CustomScrollView(
@@ -32,13 +33,12 @@ class ServiceDetailsScreen extends StatelessWidget {
             price: price,
             description: description,
             duration: duration,
+            rating: rating,
             theme: theme,
           ),
         ],
       ),
-      floatingActionButton: _ServiceDetailsFloatingButton(
-        serviceData: serviceData,
-      ),
+      floatingActionButton: _ServiceDetailsFloatingButton(serviceData: service),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
@@ -93,6 +93,7 @@ class _ServiceDetailsContent extends StatelessWidget {
     required this.price,
     required this.description,
     required this.duration,
+    required this.rating,
     required this.theme,
   });
 
@@ -100,6 +101,7 @@ class _ServiceDetailsContent extends StatelessWidget {
   final String price;
   final String description;
   final String duration;
+  final double rating;
   final ThemeData theme;
 
   @override
@@ -135,16 +137,17 @@ class _ServiceDetailsContent extends StatelessWidget {
               children: [
                 Row(
                   children: List.generate(5, (index) {
-                    return const Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 20,
-                    );
+                    final icon = index < rating.floor()
+                        ? Icons.star
+                        : (index < rating
+                              ? Icons.star_half
+                              : Icons.star_border);
+                    return Icon(icon, color: Colors.amber, size: 20);
                   }),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '4.9 (124 reviews)',
+                  rating.toStringAsFixed(1),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.disabledColor,
                   ),
@@ -182,7 +185,7 @@ class _ServiceDetailsContent extends StatelessWidget {
 class _ServiceDetailsFloatingButton extends StatelessWidget {
   const _ServiceDetailsFloatingButton({required this.serviceData});
 
-  final Map<String, dynamic> serviceData;
+  final ServiceModel serviceData;
 
   @override
   Widget build(BuildContext context) {

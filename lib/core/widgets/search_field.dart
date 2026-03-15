@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 class SearchField extends StatelessWidget {
-  const SearchField({super.key});
+  final ValueChanged<String>? onChanged;
+  const SearchField({super.key, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      onChanged: onChanged,
+      onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
       decoration: InputDecoration(
         hintText: "Search services...",
         prefixIcon: const Icon(Icons.search),

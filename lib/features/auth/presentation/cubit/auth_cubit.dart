@@ -23,14 +23,8 @@ class AuthCubit extends Cubit<AuthState> {
     switch (authResult) {
       case Failure(:final exception):
         emit(AuthFailure(exception.message));
-      case Success(data: final firebaseUser):
-        final profileResult = await _profileRepository.getUser(
-          firebaseUser.uid,
-        );
-        profileResult.when(
-          success: (appUser) => emit(AuthSuccess()),
-          failure: (exception) => emit(AuthFailure(exception.message)),
-        );
+      case Success():
+        emit(AuthSuccess());
     }
   }
 

@@ -1,5 +1,4 @@
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
-import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/core/services/firebase_auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -74,7 +73,6 @@ class AuthRepository {
   Future<Result<void>> signOut() async {
     try {
       await _authService.signOut();
-      await SharedPrefHelper.clearAllSecuredData();
       return const Success(null);
     } on AppException catch (e) {
       return Failure(e);
@@ -99,22 +97,6 @@ class AuthRepository {
   Future<Result<void>> sendEmailVerification() async {
     try {
       await _authService.sendEmailVerification();
-      return const Success(null);
-    } on AppException catch (e) {
-      return Failure(e);
-    } catch (e) {
-      return Failure(UnknownException(e.toString()));
-    }
-  }
-
-  /// Updates the current user's Firebase Auth display name.
-  ///
-  /// Call [ProfileRepository.updateProfile] afterwards to sync the change to
-  /// Firestore.
-  Future<Result<void>> updateDisplayName(String displayName) async {
-    try {
-      await _authService.updateDisplayName(displayName);
-      await _authService.reloadUser();
       return const Success(null);
     } on AppException catch (e) {
       return Failure(e);

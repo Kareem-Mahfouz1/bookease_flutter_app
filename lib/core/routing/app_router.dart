@@ -1,5 +1,6 @@
 import 'package:appointment_booking/core/helpers/constants.dart';
 import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
+import 'package:appointment_booking/core/models/service_model.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/features/auth/presentation/screens/auth_screen.dart';
 import 'package:appointment_booking/features/root/error_screen.dart';
@@ -15,6 +16,9 @@ import 'package:appointment_booking/features/profile/presentation/cubit/profile_
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_state.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';
+import 'package:appointment_booking/features/home/logic/home_cubit.dart';
+import 'package:appointment_booking/features/home/data/repos/home_repo.dart';
+import 'package:appointment_booking/core/services/firestore_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -63,8 +67,19 @@ class AppRouter {
       ),
       GoRoute(
         path: Routes.main,
-        pageBuilder: (context, state) =>
-            MaterialPage(key: state.pageKey, child: const MainScreen()),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (context) => HomeCubit(
+                  HomeRepository(firestoreService: FirestoreService()),
+                )..getServices(),
+              ),
+            ],
+            child: const MainScreen(),
+          ),
+        ),
       ),
 
       GoRoute(
@@ -75,23 +90,23 @@ class AppRouter {
       GoRoute(
         path: Routes.serviceDetails,
         pageBuilder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final extra = state.extra as ServiceModel;
           return MaterialPage(
             key: state.pageKey,
-            child: ServiceDetailsScreen(serviceData: extra),
+            child: ServiceDetailsScreen(service: extra),
           );
         },
       ),
       GoRoute(
         path: Routes.bookingCalendar,
         pageBuilder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final extra = state.extra as ServiceModel;
           return MaterialPage(
             key: state.pageKey,
             // Provide Cubit at the router level so it persists across the booking flow
             child: BlocProvider(
               create: (context) => BookingCubit(BookingRepository()),
-              child: BookingCalendarScreen(serviceData: extra),
+              child: BookingCalendarScreen(service: extra),
             ),
           );
         },

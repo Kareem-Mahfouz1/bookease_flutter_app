@@ -194,20 +194,6 @@ class FirebaseAuthService {
     }
   }
 
-  /// Updates the current user's display name
-  Future<void> updateDisplayName(String displayName) async {
-    try {
-      final user = _firebaseAuth.currentUser;
-      if (user == null) {
-        throw const AuthException('No authenticated user found');
-      }
-      await user.updateDisplayName(displayName);
-      await user.reload();
-    } catch (e) {
-      throw UnknownException(e.toString());
-    }
-  }
-
   /// Updates the current user's email
   ///
   /// Throws [EmailAlreadyInUseException] if email is already in use

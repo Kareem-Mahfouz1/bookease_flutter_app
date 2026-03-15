@@ -5,6 +5,7 @@ class AppTextFormField extends StatelessWidget {
   const AppTextFormField({
     super.key,
     this.controller,
+    this.focusNode,
     this.labelText,
     this.hintText,
     this.keyboardType,
@@ -22,6 +23,7 @@ class AppTextFormField extends StatelessWidget {
   });
 
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? labelText;
   final String? hintText;
   final TextInputType? keyboardType;
@@ -44,6 +46,7 @@ class AppTextFormField extends StatelessWidget {
     final field = TextFormField(
       onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
       controller: controller,
+      focusNode: focusNode,
       keyboardType: keyboardType,
       textInputAction:
           textInputAction ??
