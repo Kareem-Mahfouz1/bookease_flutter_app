@@ -26,7 +26,7 @@ class ProfileAccountCard extends StatelessWidget {
             title: 'Edit Profile',
             subtitle: 'Update your name and photo',
             onTap: () {
-              context.push(Routes.editProfile);
+              context.push(Routes.editProfile, extra: user);
             },
           ),
           Divider(

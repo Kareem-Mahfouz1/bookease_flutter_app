@@ -1,3 +1,5 @@
+import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
+import 'package:appointment_booking/features/profile/presentation/cubit/profile_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +27,17 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   final _emailFocusNode = FocusNode();
   final _phoneFocusNode = FocusNode();
   final _notesFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    final cubit = context.read<ProfileCubit>();
+    if (cubit.state is ProfileSuccess) {
+      final user = (cubit.state as ProfileSuccess).user;
+      _nameController.text = user.displayName ?? '';
+      _emailController.text = user.email;
+    }
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -82,10 +95,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       body: BlocConsumer<BookingCubit, BookingState>(
         listener: (context, state) {
           if (state is BookingSuccess) {
-            context.go(
-              Routes.bookingSuccess,
-              extra: context.read<BookingCubit>(),
-            ); // Or push tracking flow later
+            context.go(Routes.bookingSuccess); // Or push tracking flow later
           } else if (state is BookingErrorSubmitting) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

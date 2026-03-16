@@ -2,6 +2,7 @@ import 'package:appointment_booking/core/helpers/constants.dart';
 import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/models/service_model.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
+import 'package:appointment_booking/features/auth/data/models/app_user.dart';
 import 'package:appointment_booking/features/auth/presentation/screens/auth_screen.dart';
 import 'package:appointment_booking/features/root/error_screen.dart';
 import 'package:appointment_booking/features/root/main_screen.dart';
@@ -12,8 +13,6 @@ import 'package:appointment_booking/features/booking/presentation/screens/bookin
 import 'package:appointment_booking/features/booking/presentation/screens/booking_details_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/screens/booking_success_screen.dart';
 import 'package:appointment_booking/features/profile/presentation/screens/edit_profile_screen.dart';
-import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
-import 'package:appointment_booking/features/profile/presentation/cubit/profile_state.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';
 import 'package:appointment_booking/features/home/logic/home_cubit.dart';
@@ -81,7 +80,6 @@ class AppRouter {
           ),
         ),
       ),
-
       GoRoute(
         path: Routes.auth,
         pageBuilder: (context, state) =>
@@ -97,54 +95,47 @@ class AppRouter {
           );
         },
       ),
-      GoRoute(
-        path: Routes.bookingCalendar,
-        pageBuilder: (context, state) {
-          final extra = state.extra as ServiceModel;
-          return MaterialPage(
-            key: state.pageKey,
-            // Provide Cubit at the router level so it persists across the booking flow
-            child: BlocProvider(
-              create: (context) => BookingCubit(BookingRepository()),
-              child: BookingCalendarScreen(service: extra),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: Routes.bookingDetails,
-        pageBuilder: (context, state) {
-          final cubit = state.extra as BookingCubit;
-          return MaterialPage(
-            key: state.pageKey,
-            child: BlocProvider.value(
-              value: cubit,
+      ShellRoute(
+        pageBuilder: (context, state, child) => MaterialPage(
+          key: state.pageKey,
+          child: BlocProvider(
+            create: (context) => BookingCubit(BookingRepository()),
+            child: child,
+          ),
+        ),
+        routes: [
+          GoRoute(
+            path: Routes.bookingCalendar,
+            pageBuilder: (context, state) {
+              final extra = state.extra as ServiceModel;
+              return MaterialPage(
+                key: state.pageKey,
+                child: BookingCalendarScreen(service: extra),
+              );
+            },
+          ),
+          GoRoute(
+            path: Routes.bookingDetails,
+            pageBuilder: (context, state) => MaterialPage(
+              key: state.pageKey,
               child: const BookingDetailsScreen(),
             ),
-          );
-        },
-      ),
-      GoRoute(
-        path: Routes.bookingSuccess,
-        pageBuilder: (context, state) {
-          final cubit = state.extra as BookingCubit;
-          return MaterialPage(
-            key: state.pageKey,
-            child: BlocProvider.value(
-              value: cubit,
+          ),
+          GoRoute(
+            path: Routes.bookingSuccess,
+            pageBuilder: (context, state) => MaterialPage(
+              key: state.pageKey,
               child: const BookingSuccessScreen(),
             ),
-          );
-        },
+          ),
+        ],
       ),
       GoRoute(
         path: Routes.editProfile,
         pageBuilder: (context, state) {
-          final profileState = context.read<ProfileCubit>().state;
-          final user = (profileState as ProfileSuccess).user;
           return MaterialPage(
             key: state.pageKey,
-            child: EditProfileScreen(user: user),
+            child: EditProfileScreen(user: state.extra as AppUser),
           );
         },
       ),

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/core/models/service_model.dart';
+import 'package:appointment_booking/core/helpers/service_icon_mapper.dart';
 
 class ServiceDetailsScreen extends StatelessWidget {
   final ServiceModel service;
@@ -15,17 +16,18 @@ class ServiceDetailsScreen extends StatelessWidget {
 
     final serviceName = service.name;
     final description = service.description;
-    final duration = service.durationMinutes.toString();
-    final price = service.price.toString();
+    final duration = '${service.durationMinutes} min';
+    final price = '\$${service.price.toStringAsFixed(2)}';
     final imageUrl = service.imageUrl;
     final rating = service.rating;
+    final iconData = getServiceIcon(service.iconName);
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           _ServiceDetailsAppBar(
-            serviceName: serviceName,
             imageUrl: imageUrl,
+            iconData: iconData,
             theme: theme,
           ),
           _ServiceDetailsContent(
@@ -46,13 +48,13 @@ class ServiceDetailsScreen extends StatelessWidget {
 
 class _ServiceDetailsAppBar extends StatelessWidget {
   const _ServiceDetailsAppBar({
-    required this.serviceName,
     required this.imageUrl,
+    required this.iconData,
     required this.theme,
   });
 
-  final String serviceName;
   final String? imageUrl;
+  final IconData iconData;
   final ThemeData theme;
 
   @override
@@ -61,26 +63,23 @@ class _ServiceDetailsAppBar extends StatelessWidget {
       expandedHeight: 260.h,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          serviceName,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
-          ),
-        ),
-        background: Image.network(
-          (imageUrl != null && imageUrl!.isNotEmpty)
-              ? imageUrl!
-              : 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=1470&auto=format&fit=crop', // default massage image
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: theme.primaryColor,
-            child: const Center(
-              child: Icon(Icons.spa, size: 80, color: Colors.white),
-            ),
-          ),
-        ),
+        background: (imageUrl != null && imageUrl!.isNotEmpty)
+            ? Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: theme.primaryColor,
+                  child: Center(
+                    child: Icon(iconData, size: 150, color: Colors.white),
+                  ),
+                ),
+              )
+            : Container(
+                color: theme.primaryColor,
+                child: Center(
+                  child: Icon(iconData, size: 150, color: Colors.white),
+                ),
+              ),
       ),
       iconTheme: const IconThemeData(color: Colors.white),
     );
@@ -133,27 +132,7 @@ class _ServiceDetailsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Row(
-                  children: List.generate(5, (index) {
-                    final icon = index < rating.floor()
-                        ? Icons.star
-                        : (index < rating
-                              ? Icons.star_half
-                              : Icons.star_border);
-                    return Icon(icon, color: Colors.amber, size: 20);
-                  }),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  rating.toStringAsFixed(1),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.disabledColor,
-                  ),
-                ),
-              ],
-            ),
+            _StarRating(rating: rating, theme: theme),
             const SizedBox(height: 24),
             Text(
               'Description',
@@ -174,10 +153,42 @@ class _ServiceDetailsContent extends StatelessWidget {
                 Text('Duration: $duration', style: theme.textTheme.titleMedium),
               ],
             ),
-            const SizedBox(height: 120), // Bottom padding for fixed bottom area
+            SizedBox(
+              height: MediaQuery.of(context).padding.bottom + 100,
+            ), // Dynamic bottom padding for floating button
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StarRating extends StatelessWidget {
+  const _StarRating({required this.rating, required this.theme});
+
+  final double rating;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Row(
+          children: List.generate(5, (index) {
+            final icon = index < rating.floor()
+                ? Icons.star
+                : (index < rating ? Icons.star_half : Icons.star_border);
+            return Icon(icon, color: Colors.amber, size: 20);
+          }),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          rating.toStringAsFixed(1),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.disabledColor,
+          ),
+        ),
+      ],
     );
   }
 }

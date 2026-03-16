@@ -222,10 +222,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
               child: ElevatedButton(
                 onPressed: isSlotSelected
                     ? () {
-                        context.push(
-                          Routes.bookingDetails,
-                          extra: context.read<BookingCubit>(),
-                        );
+                        context.push(Routes.bookingDetails);
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
