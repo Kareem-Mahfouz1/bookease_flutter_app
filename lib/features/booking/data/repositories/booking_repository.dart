@@ -1,87 +1,195 @@
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
+import 'package:appointment_booking/core/models/booking.dart';
 import 'package:appointment_booking/core/models/result.dart';
-import 'package:appointment_booking/features/booking/data/models/booking_model.dart';
-import 'package:appointment_booking/features/booking/data/models/time_slot_model.dart';
-import 'package:uuid/uuid.dart';
+import 'package:appointment_booking/features/booking/domain/booking_details.dart';
+import 'package:appointment_booking/features/booking/domain/clinic_schedule.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Repository for handling booking business logic
-///
-/// Handles fetching available time slots and submitting a final booking.
-/// Currently uses mock delays and data.
 class BookingRepository {
-  BookingRepository();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Fetches available time slots for a given date and service
-  Future<Result<List<TimeSlotModel>>> getAvailableTimeSlots({
-    required DateTime date,
-    required String serviceId,
-  }) async {
+  Future<Result<ClinicSchedule>> getClinicSchedule(DateTime date) async {
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Generate some mock time slots between 9 AM and 5 PM
-      final List<TimeSlotModel> slots = [];
-      final startHour = 9;
-      final endHour = 17;
-
-      for (int hour = startHour; hour < endHour; hour++) {
-        final startTime = DateTime(date.year, date.month, date.day, hour, 0);
-        final endTime = startTime.add(const Duration(hours: 1));
-
-        // Randomly make some slots unavailable for realistic UI testing
-        final isAvailable = (hour % 3 != 0);
-
-        slots.add(
-          TimeSlotModel(
-            startTime: startTime,
-            endTime: endTime,
-            isAvailable: isAvailable,
-          ),
+      final doc = await _firestore
+          .collection('clinic_schedule')
+          .doc(date.weekday.toString())
+          .get();
+      if (!doc.exists) {
+        return const Failure(
+          ServerException('Clinic schedule not found for this day.'),
         );
       }
-
-      return Success(slots);
+      return Success(ClinicSchedule.fromFirestore(doc));
     } catch (e) {
       return Failure(UnknownException(e.toString()));
     }
   }
 
-  /// Submits a new booking to the backend
-  Future<Result<BookingModel>> submitBooking({
-    required String serviceId,
-    required String serviceName,
-    required TimeSlotModel timeSlot,
-    required String customerName,
-    required String customerEmail,
-    String? customerPhone,
-    String? notes,
-  }) async {
+  Future<Result<List<ClinicSchedule>>> getAllClinicSchedules() async {
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Simulate a network failure very occasionally for testing error states (e.g 10% chance)
-      // if (DateTime.now().second % 10 == 0) {
-      //   return const Failure(ServerException('Failed to process booking on the server.'));
-      // }
-
-      // Create a mocked confirmed booking
-      final booking = BookingModel(
-        id: const Uuid().v4(),
-        serviceId: serviceId,
-        serviceName: serviceName,
-        timeSlot: timeSlot,
-        customerName: customerName,
-        customerEmail: customerEmail,
-        customerPhone: customerPhone,
-        notes: notes,
-        createdAt: DateTime.now(),
-      );
-
-      return Success(booking);
+      final snapshot = await _firestore.collection('clinic_schedule').get();
+      final schedules = snapshot.docs
+          .map((doc) => ClinicSchedule.fromFirestore(doc))
+          .toList();
+      return Success(schedules);
     } catch (e) {
       return Failure(UnknownException(e.toString()));
     }
+  }
+
+  Future<Result<List<Booking>>> getBookingsForDate(String date) async {
+    try {
+      final snapshot = await _firestore
+          .collection('bookings')
+          .where('date', isEqualTo: date)
+          .where('status', isEqualTo: 'confirmed')
+          .get();
+      final bookings = snapshot.docs
+          .map((doc) => Booking.fromFirestore(doc))
+          .toList();
+      return Success(bookings);
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  Future<Result<Booking>> createBooking(BookingDetails details) async {
+    try {
+      final docRef = _firestore.collection('daily_slots').doc(details.date);
+      final bookingRef = _firestore.collection('bookings').doc();
+
+      final newStart = _timeStringToMinutes(details.startTime);
+      final newEnd = newStart + details.serviceDurationMinutes;
+
+      await _firestore.runTransaction((tx) async {
+        final snapshot = await tx.get(docRef);
+
+        final intervals = snapshot.exists
+            ? List<Map<String, dynamic>>.from(
+                snapshot.data()?['bookedIntervals'] ?? [],
+              )
+            : <Map<String, dynamic>>[];
+
+        final hasOverlap = intervals.any((i) {
+          final iStart = i['startMinutes'] as int;
+          final iEnd = i['endMinutes'] as int;
+          return newStart < iEnd && newEnd > iStart;
+        });
+
+        if (hasOverlap) {
+          throw const ServerException('Slot no longer available');
+        }
+
+        intervals.add({'startMinutes': newStart, 'endMinutes': newEnd});
+
+        tx.set(docRef, {'bookedIntervals': intervals}, SetOptions(merge: true));
+
+        final bookingData = Booking(
+          id: bookingRef.id,
+          serviceId: details.serviceId,
+          serviceName: details.serviceName,
+          serviceDurationMinutes: details.serviceDurationMinutes,
+          date: details.date,
+          startTime: details.startTime,
+          startMinutes: newStart,
+          endMinutes: newEnd,
+          userId: details.userId,
+          customerName: details.customerName,
+          customerEmail: details.customerEmail,
+          customerPhone: details.customerPhone,
+          notes: details.notes,
+          status: 'confirmed',
+          createdAt: DateTime.now(),
+        ).toMap();
+
+        tx.set(bookingRef, bookingData);
+      });
+
+      final createdDoc = await bookingRef.get();
+      return Success(Booking.fromFirestore(createdDoc));
+    } on AppException catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  Future<Result<void>> cancelBooking(String bookingId) async {
+    try {
+      final bookingRef = _firestore.collection('bookings').doc(bookingId);
+
+      await _firestore.runTransaction((tx) async {
+        final bookingSnapshot = await tx.get(bookingRef);
+        if (!bookingSnapshot.exists) {
+          throw const ServerException('Booking not found');
+        }
+
+        final booking = Booking.fromFirestore(bookingSnapshot);
+        if (booking.status == 'cancelled' || booking.status == 'completed') {
+          throw ServerException('Booking is already ${booking.status}');
+        }
+
+        final now = DateTime.now();
+        final bookingDate = DateTime.parse(booking.date);
+        final today = DateTime(now.year, now.month, now.day);
+
+        if (bookingDate.isBefore(today)) {
+          throw const ServerException('Cannot cancel a past booking');
+        }
+
+        final slotsDocRef = _firestore
+            .collection('daily_slots')
+            .doc(booking.date);
+        final slotsSnapshot = await tx.get(slotsDocRef);
+
+        if (slotsSnapshot.exists) {
+          final intervals = List<Map<String, dynamic>>.from(
+            slotsSnapshot.data()?['bookedIntervals'] ?? [],
+          );
+
+          intervals.removeWhere(
+            (i) =>
+                i['startMinutes'] == booking.startMinutes &&
+                i['endMinutes'] == booking.endMinutes,
+          );
+
+          tx.set(slotsDocRef, {
+            'bookedIntervals': intervals,
+          }, SetOptions(merge: true));
+        }
+
+        tx.update(bookingRef, {'status': 'cancelled'});
+      });
+
+      return const Success(null);
+    } on AppException catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  Future<Result<List<Booking>>> getUserBookings(String userId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('bookings')
+          .where('userId', isEqualTo: userId)
+          .orderBy('date', descending: true)
+          .get();
+      final bookings = snapshot.docs
+          .map((doc) => Booking.fromFirestore(doc))
+          .toList();
+      return Success(bookings);
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  int _timeStringToMinutes(String time) {
+    final parts = time.split(':');
+    if (parts.length != 2) return 0;
+    final hours = int.tryParse(parts[0]) ?? 0;
+    final minutes = int.tryParse(parts[1]) ?? 0;
+    return hours * 60 + minutes;
   }
 }

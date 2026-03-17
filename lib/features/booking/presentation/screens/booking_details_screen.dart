@@ -28,11 +28,14 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   final _phoneFocusNode = FocusNode();
   final _notesFocusNode = FocusNode();
 
+  String? userId;
+
   @override
   void initState() {
     final cubit = context.read<ProfileCubit>();
     if (cubit.state is ProfileSuccess) {
       final user = (cubit.state as ProfileSuccess).user;
+      userId = user.uid;
       _nameController.text = user.displayName ?? '';
       _emailController.text = user.email;
     }
@@ -54,7 +57,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
 
   void _submitBooking() {
     if (_formKey.currentState!.validate()) {
-      context.read<BookingCubit>().submitBooking(
+      context.read<BookingCubit>().confirmBooking(
+        userId: userId ?? '', // user must be logged in in reality
         customerName: _nameController.text.trim(),
         customerEmail: _emailController.text.trim(),
         customerPhone: _phoneController.text.trim(),
@@ -63,11 +67,22 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     }
   }
 
+  String _calculateEndTimeString(String startTime, int durationMinutes) {
+    final parts = startTime.split(':');
+    if (parts.length != 2) return startTime;
+    final hours = int.tryParse(parts[0]) ?? 0;
+    final mins = int.tryParse(parts[1]) ?? 0;
+
+    final totalMins = hours * 60 + mins + durationMinutes;
+    final endHr = (totalMins ~/ 60).toString().padLeft(2, '0');
+    final endMin = (totalMins % 60).toString().padLeft(2, '0');
+    return '$endHr:$endMin';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Safety check just in case we hit this screen without data
     final cubit = context.read<BookingCubit>();
     if (cubit.selectedServiceData == null || cubit.selectedTimeSlot == null) {
       return const Scaffold(
@@ -78,11 +93,15 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     final serviceName = cubit.selectedServiceData!.name;
     final price = cubit.selectedServiceData!.price;
     final slot = cubit.selectedTimeSlot!;
+    final date = cubit.selectedDate ?? DateTime.now();
 
     final dateStr =
-        '${slot.startTime.day}/${slot.startTime.month}/${slot.startTime.year}';
-    final timeStr =
-        '${slot.startTime.hour.toString().padLeft(2, '0')}:00 - ${slot.endTime.hour.toString().padLeft(2, '0')}:00';
+        '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    final endTimeStr = _calculateEndTimeString(
+      slot,
+      cubit.selectedServiceData!.durationMinutes,
+    );
+    final timeStr = '$slot - $endTimeStr';
 
     return Scaffold(
       appBar: AppBar(
@@ -95,8 +114,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       body: BlocConsumer<BookingCubit, BookingState>(
         listener: (context, state) {
           if (state is BookingSuccess) {
-            context.go(Routes.bookingSuccess); // Or push tracking flow later
-          } else if (state is BookingErrorSubmitting) {
+            context.go(Routes.bookingSuccess);
+          } else if (state is BookingFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -106,7 +125,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
           }
         },
         builder: (context, state) {
-          final isLoading = state is BookingSubmitting;
+          final isLoading = state is BookingLoading;
 
           return Stack(
             children: [
@@ -117,7 +136,6 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Summary Card
                       Container(
                         padding: EdgeInsets.all(16.r),
                         decoration: BoxDecoration(
@@ -145,14 +163,13 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                             SizedBox(height: 8.h),
                             _buildSummaryRow(
                               'Total',
-                              price.toStringAsFixed(2),
+                              '\$${price.toStringAsFixed(2)}',
                               theme,
                               isTotal: true,
                             ),
                           ],
                         ),
                       ),
-
                       SizedBox(height: 32.h),
                       Text(
                         'Personal Information',
@@ -161,7 +178,6 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                         ),
                       ),
                       SizedBox(height: 16.h),
-
                       Theme(
                         data: theme.copyWith(
                           inputDecorationTheme: _buildInputDecorationTheme(
@@ -227,13 +243,11 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                           ],
                         ),
                       ),
-
-                      SizedBox(height: 80.h), // Bottom padding
+                      SizedBox(height: 80.h),
                     ],
                   ),
                 ),
               ),
-
               if (isLoading)
                 Container(
                   color: Colors.black.withValues(alpha: 0.3),
@@ -248,7 +262,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
           ? null
           : BlocBuilder<BookingCubit, BookingState>(
               builder: (context, state) {
-                final isLoading = state is BookingSubmitting;
+                final isLoading = state is BookingLoading;
 
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -263,17 +277,15 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                         ),
                         backgroundColor: theme.primaryColor,
                         foregroundColor: theme.colorScheme.onPrimary,
-                        disabledBackgroundColor: theme.disabledColor,
                         elevation: 8,
-                        shadowColor: theme.primaryColor.withValues(alpha: 0.5),
                       ),
                       child: isLoading
                           ? SizedBox(
                               height: 24.r,
                               width: 24.r,
                               child: const CircularProgressIndicator(
-                                strokeWidth: 2,
                                 color: Colors.white,
+                                strokeWidth: 2,
                               ),
                             )
                           : Text(
@@ -329,15 +341,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       fillColor: theme.cardColor,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.5),
-        ),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.5),
-        ),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),

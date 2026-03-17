@@ -3,6 +3,7 @@ import 'package:appointment_booking/features/home/logic/home_cubit.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_state.dart';
 import 'package:appointment_booking/core/services/firestore_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -130,7 +131,7 @@ class _HeroHeader extends StatelessWidget {
         ),
         InkWell(
           onTap: () async {
-            final firestore = FirestoreService();
+            // final firestore = FirestoreService();
             final services = [
               {
                 "name": "General Checkup",
@@ -221,13 +222,69 @@ class _HeroHeader extends StatelessWidget {
                 "isActive": true,
               },
             ];
+            final clinicSchedule = [
+              {
+                'dayOfWeek': 1,
+                'startTime': '09:00',
+                'endTime': '17:00',
+                'isWorkingDay': true,
+              },
+              {
+                'dayOfWeek': 2,
+                'startTime': '09:00',
+                'endTime': '17:00',
+                'isWorkingDay': true,
+              },
+              {
+                'dayOfWeek': 3,
+                'startTime': '09:00',
+                'endTime': '17:00',
+                'isWorkingDay': true,
+              },
+              {
+                'dayOfWeek': 4,
+                'startTime': '09:00',
+                'endTime': '13:00',
+                'isWorkingDay': true,
+              },
+              {
+                'dayOfWeek': 5,
+                'startTime': '00:00',
+                'endTime': '00:00',
+                'isWorkingDay': false,
+              },
+              {
+                'dayOfWeek': 6,
+                'startTime': '09:00',
+                'endTime': '17:00',
+                'isWorkingDay': true,
+              },
+              {
+                'dayOfWeek': 7,
+                'startTime': '09:00',
+                'endTime': '17:00',
+                'isWorkingDay': false,
+              },
+            ];
 
-            for (var service in services) {
-              await firestore.addDocument(
-                collectionPath: 'services',
-                data: service,
-              );
+            final firestore = FirebaseFirestore.instance;
+
+            for (final day in clinicSchedule) {
+              await firestore
+                  .collection('clinic_schedule')
+                  .doc(day['dayOfWeek'].toString())
+                  .set(day);
+              print('Seeded schedule for day: ${day['dayOfWeek']}');
             }
+
+            print('Clinic schedule seeding complete.');
+
+            // for (var service in services) {
+            //   await firestore.addDocument(
+            //     collectionPath: 'services',
+            //     data: service,
+            //   );
+            // }
 
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(

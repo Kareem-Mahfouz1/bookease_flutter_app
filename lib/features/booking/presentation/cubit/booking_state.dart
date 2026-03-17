@@ -1,38 +1,34 @@
-import 'package:appointment_booking/features/booking/data/models/booking_model.dart';
-import 'package:appointment_booking/features/booking/data/models/time_slot_model.dart';
+import 'package:appointment_booking/core/models/booking.dart';
+import 'package:appointment_booking/features/booking/domain/clinic_schedule.dart';
 
-abstract class BookingState {
-  const BookingState();
+sealed class BookingState {}
+
+class BookingInitial extends BookingState {}
+
+class BookingLoading extends BookingState {}
+
+class BookingScheduleLoaded extends BookingState {
+  final List<ClinicSchedule> schedules;
+  BookingScheduleLoaded(this.schedules);
 }
 
-class BookingInitial extends BookingState {
-  const BookingInitial();
-}
-
-class BookingLoadingSlots extends BookingState {
-  const BookingLoadingSlots();
-}
-
-class BookingLoadedSlots extends BookingState {
-  final List<TimeSlotModel> timeSlots;
-  const BookingLoadedSlots(this.timeSlots);
-}
-
-class BookingErrorFetchingSlots extends BookingState {
-  final String message;
-  const BookingErrorFetchingSlots(this.message);
-}
-
-class BookingSubmitting extends BookingState {
-  const BookingSubmitting();
+class BookingSlotsLoaded extends BookingState {
+  final List<String> availableSlots;
+  final DateTime selectedDate;
+  BookingSlotsLoaded(this.availableSlots, this.selectedDate);
 }
 
 class BookingSuccess extends BookingState {
-  final BookingModel booking;
-  const BookingSuccess(this.booking);
+  final Booking booking;
+  BookingSuccess(this.booking);
 }
 
-class BookingErrorSubmitting extends BookingState {
+class BookingFailure extends BookingState {
   final String message;
-  const BookingErrorSubmitting(this.message);
+  BookingFailure(this.message);
+}
+
+class UserBookingsLoaded extends BookingState {
+  final List<Booking> bookings;
+  UserBookingsLoaded(this.bookings);
 }

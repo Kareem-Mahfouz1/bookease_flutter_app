@@ -33,14 +33,17 @@ class AppRouter {
     initialLocation: Routes.splash,
     debugLogDiagnostics: true,
     redirect: (context, state) async {
-      final isOnboardingCompleted = await SharedPrefHelper.getBool(
-        SharedPrefKeys.keyOnboardingCompleted,
-      );
       final isAuthenticated = FirebaseAuth.instance.currentUser != null;
       final location = state.matchedLocation;
 
-      if (!isOnboardingCompleted) {
-        return location == Routes.onboarding ? null : Routes.onboarding;
+      if (location == Routes.splash || location == Routes.onboarding) {
+        final isOnboardingCompleted = await SharedPrefHelper.getBool(
+          SharedPrefKeys.keyOnboardingCompleted,
+        );
+
+        if (!isOnboardingCompleted) {
+          return location == Routes.onboarding ? null : Routes.onboarding;
+        }
       }
 
       if (!isAuthenticated) {

@@ -21,13 +21,15 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize standard state in Cubit
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BookingCubit>().setServiceData(widget.service);
+      context.read<BookingCubit>().init();
 
-      // Select today by default
       _selectedDay = DateTime.now();
-      context.read<BookingCubit>().selectDate(_selectedDay!);
+      context.read<BookingCubit>().loadAvailableSlots(
+        _selectedDay!,
+        widget.service.durationMinutes,
+      );
     });
   }
 
@@ -38,9 +40,13 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text(
           'Select Date & Time',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -61,7 +67,6 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Native Calendar Widget
                   Container(
                     decoration: BoxDecoration(
                       color: theme.cardColor,
@@ -74,15 +79,36 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                         ),
                       ],
                     ),
-                    child: CalendarDatePicker(
-                      initialDate: _selectedDay ?? DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 90)),
-                      onDateChanged: (newDate) {
-                        setState(() {
-                          _selectedDay = newDate;
-                        });
-                        context.read<BookingCubit>().selectDate(newDate);
+                    child: BlocBuilder<BookingCubit, BookingState>(
+                      buildWhen: (previous, current) =>
+                          current is BookingScheduleLoaded ||
+                          current is BookingInitial,
+                      builder: (context, state) {
+                        return CalendarDatePicker(
+                          initialDate: _selectedDay ?? DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 90),
+                          ),
+                          selectableDayPredicate: (date) {
+                            if (state is BookingScheduleLoaded) {
+                              final daySchedule = state.schedules.firstWhere(
+                                (s) => s.dayOfWeek == date.weekday,
+                              );
+                              return daySchedule.isWorkingDay;
+                            }
+                            return true;
+                          },
+                          onDateChanged: (newDate) {
+                            setState(() {
+                              _selectedDay = newDate;
+                            });
+                            context.read<BookingCubit>().loadAvailableSlots(
+                              newDate,
+                              widget.service.durationMinutes,
+                            );
+                          },
+                        );
                       },
                     ),
                   ),
@@ -103,14 +129,14 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
           SliverToBoxAdapter(
             child: BlocBuilder<BookingCubit, BookingState>(
               builder: (context, state) {
-                if (state is BookingLoadingSlots) {
+                if (state is BookingLoading) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 40),
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                if (state is BookingErrorFetchingSlots) {
+                if (state is BookingFailure) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Center(
@@ -122,8 +148,9 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                   );
                 }
 
-                if (state is BookingLoadedSlots) {
-                  if (state.timeSlots.isEmpty) {
+                if (state is BookingSlotsLoaded &&
+                    state.selectedDate == _selectedDay) {
+                  if (state.availableSlots.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40),
                       child: Center(
@@ -144,52 +171,40 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
                           ),
-                      itemCount: state.timeSlots.length,
+                      itemCount: state.availableSlots.length,
                       itemBuilder: (context, index) {
-                        final slot = state.timeSlots[index];
+                        final slot = state.availableSlots[index];
                         final isSelected =
                             context.read<BookingCubit>().selectedTimeSlot ==
                             slot;
 
                         return InkWell(
-                          onTap: slot.isAvailable
-                              ? () {
-                                  setState(() {
-                                    context.read<BookingCubit>().selectTimeSlot(
-                                      slot,
-                                    );
-                                  });
-                                }
-                              : null,
+                          onTap: () {
+                            setState(() {
+                              context.read<BookingCubit>().selectTimeSlot(slot);
+                            });
+                          },
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? theme.primaryColor
-                                  : (slot.isAvailable
-                                        ? theme.cardColor
-                                        : theme.disabledColor.withValues(
-                                            alpha: 0.2,
-                                          )),
+                                  : theme.cardColor,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: isSelected
                                     ? theme.primaryColor
-                                    : (slot.isAvailable
-                                          ? theme.dividerColor
-                                          : Colors.transparent),
+                                    : theme.dividerColor,
                               ),
                             ),
                             child: Text(
-                              '${slot.startTime.hour.toString().padLeft(2, '0')}:00',
+                              slot,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
                                     ? Colors.white
-                                    : (slot.isAvailable
-                                          ? theme.textTheme.bodyLarge?.color
-                                          : theme.disabledColor),
+                                    : theme.textTheme.bodyLarge?.color,
                               ),
                             ),
                           ),
@@ -203,10 +218,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
               },
             ),
           ),
-
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 100),
-          ), // Bottom padding
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

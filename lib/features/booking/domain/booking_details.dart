@@ -1,25 +1,25 @@
-import 'package:appointment_booking/features/booking/data/models/time_slot_model.dart';
-
-class BookingModel {
-  final String id;
+class BookingDetails {
   final String serviceId;
   final String serviceName;
-  final TimeSlotModel timeSlot;
+  final int serviceDurationMinutes;
+  final String date;
+  final String startTime;
+  final String userId;
   final String customerName;
   final String customerEmail;
   final String? customerPhone;
   final String? notes;
-  final DateTime createdAt;
 
-  const BookingModel({
-    required this.id,
+  const BookingDetails({
     required this.serviceId,
     required this.serviceName,
-    required this.timeSlot,
+    required this.serviceDurationMinutes,
+    required this.date,
+    required this.startTime,
+    required this.userId,
     required this.customerName,
     required this.customerEmail,
     this.customerPhone,
     this.notes,
-    required this.createdAt,
   });
 }
