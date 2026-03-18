@@ -1,8 +1,8 @@
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
 import 'package:appointment_booking/core/models/booking.dart';
 import 'package:appointment_booking/core/models/result.dart';
-import 'package:appointment_booking/features/booking/domain/booking_details.dart';
-import 'package:appointment_booking/features/booking/domain/clinic_schedule.dart';
+import 'package:appointment_booking/features/booking/data/models/booking_details.dart';
+import 'package:appointment_booking/features/booking/data/models/clinic_schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookingRepository {

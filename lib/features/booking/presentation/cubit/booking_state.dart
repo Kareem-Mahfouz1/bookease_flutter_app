@@ -1,5 +1,5 @@
 import 'package:appointment_booking/core/models/booking.dart';
-import 'package:appointment_booking/features/booking/domain/clinic_schedule.dart';
+import 'package:appointment_booking/features/booking/data/models/clinic_schedule.dart';
 
 sealed class BookingState {}
 

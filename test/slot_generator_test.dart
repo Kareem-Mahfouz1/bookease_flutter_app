@@ -1,5 +1,5 @@
 import 'package:appointment_booking/core/models/booking.dart';
-import 'package:appointment_booking/features/booking/domain/clinic_schedule.dart';
+import 'package:appointment_booking/features/booking/data/models/clinic_schedule.dart';
 import 'package:appointment_booking/features/booking/utils/slot_generator.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -1,5 +1,5 @@
 import 'package:appointment_booking/core/models/booking.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/widgets/bookings_section.dart';
+import 'package:appointment_booking/features/my_bookings/widgets/bookings_section.dart';
 import 'package:flutter/material.dart';
 
 class MyBookingsBody extends StatelessWidget {

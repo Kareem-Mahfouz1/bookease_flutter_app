@@ -2,7 +2,7 @@ import 'package:appointment_booking/features/home/presentation/widgets/hero_sect
 import 'package:appointment_booking/features/home/presentation/widgets/services_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:appointment_booking/features/home/logic/home_cubit.dart';
+import 'package:appointment_booking/features/home/presentation/cubit/home_cubit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

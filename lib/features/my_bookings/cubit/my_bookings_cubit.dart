@@ -1,7 +1,7 @@
 import 'package:appointment_booking/core/models/booking.dart';
 import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/cubit/my_bookings_state.dart';
+import 'package:appointment_booking/features/my_bookings/cubit/my_bookings_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 

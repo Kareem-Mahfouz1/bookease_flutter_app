@@ -1,6 +1,6 @@
 import 'package:appointment_booking/core/models/service_model.dart';
 import 'package:appointment_booking/features/home/data/repos/home_repo.dart';
-import 'package:appointment_booking/features/home/logic/home_state.dart';
+import 'package:appointment_booking/features/home/presentation/cubit/home_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeCubit extends Cubit<HomeState> {

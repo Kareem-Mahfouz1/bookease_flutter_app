@@ -1,6 +1,6 @@
 import 'package:appointment_booking/core/models/booking.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/widgets/booking_card.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/widgets/empty_bookings_widget.dart';
+import 'package:appointment_booking/features/my_bookings/widgets/booking_card.dart';
+import 'package:appointment_booking/features/my_bookings/widgets/empty_bookings_widget.dart';
 import 'package:flutter/material.dart';
 
 class BookingsSection extends StatelessWidget {

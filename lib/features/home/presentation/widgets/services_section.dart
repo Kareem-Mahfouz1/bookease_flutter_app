@@ -1,7 +1,7 @@
 import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/features/home/presentation/widgets/service_card.dart';
-import 'package:appointment_booking/features/home/logic/home_cubit.dart';
-import 'package:appointment_booking/features/home/logic/home_state.dart';
+import 'package:appointment_booking/features/home/presentation/cubit/home_cubit.dart';
+import 'package:appointment_booking/features/home/presentation/cubit/home_state.dart';
 import 'package:appointment_booking/core/helpers/service_icon_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

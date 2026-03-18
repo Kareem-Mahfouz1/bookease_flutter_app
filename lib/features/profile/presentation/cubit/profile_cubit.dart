@@ -1,4 +1,4 @@
-import 'package:appointment_booking/features/profile/data/profile_repository.dart';
+import 'package:appointment_booking/features/profile/data/repo/profile_repository.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

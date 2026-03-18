@@ -3,7 +3,7 @@ import 'package:appointment_booking/core/theme/theme_cubit.dart';
 import 'package:appointment_booking/core/theme/themes.dart';
 import 'package:appointment_booking/features/auth/data/repositories/auth_repository.dart';
 import 'package:appointment_booking/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:appointment_booking/features/profile/data/profile_repository.dart';
+import 'package:appointment_booking/features/profile/data/repo/profile_repository.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

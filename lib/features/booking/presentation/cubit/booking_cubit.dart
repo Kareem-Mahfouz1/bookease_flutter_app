@@ -1,4 +1,4 @@
-import 'package:appointment_booking/features/booking/domain/booking_details.dart';
+import 'package:appointment_booking/features/booking/data/models/booking_details.dart';
 import 'package:appointment_booking/features/booking/utils/slot_generator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';

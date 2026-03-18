@@ -1,11 +1,11 @@
 import 'package:appointment_booking/core/models/booking.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/all_bookings_screen.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/cubit/my_bookings_cubit.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/cubit/my_bookings_state.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/widgets/my_bookings_body.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/widgets/my_bookings_empty_view.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/widgets/my_bookings_error_view.dart';
+import 'package:appointment_booking/features/my_bookings/screens/all_bookings_screen.dart';
+import 'package:appointment_booking/features/my_bookings/cubit/my_bookings_cubit.dart';
+import 'package:appointment_booking/features/my_bookings/cubit/my_bookings_state.dart';
+import 'package:appointment_booking/features/my_bookings/widgets/my_bookings_body.dart';
+import 'package:appointment_booking/features/my_bookings/widgets/my_bookings_empty_view.dart';
+import 'package:appointment_booking/features/my_bookings/widgets/my_bookings_error_view.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_state.dart';
 import 'package:flutter/material.dart';

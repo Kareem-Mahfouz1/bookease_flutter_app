@@ -1,7 +1,7 @@
 import 'package:appointment_booking/core/models/booking.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/cubit/my_bookings_cubit.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/cubit/my_bookings_state.dart';
-import 'package:appointment_booking/features/my_bookings/presentation/widgets/booking_card.dart';
+import 'package:appointment_booking/features/my_bookings/cubit/my_bookings_cubit.dart';
+import 'package:appointment_booking/features/my_bookings/cubit/my_bookings_state.dart';
+import 'package:appointment_booking/features/my_bookings/widgets/booking_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
