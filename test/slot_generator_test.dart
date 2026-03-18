@@ -14,6 +14,7 @@ Booking makeBooking({
     serviceId: 'service_001',
     serviceName: 'General Checkup',
     serviceDurationMinutes: 30,
+    price: 50.0,
     date: date,
     startTime: '09:00',
     startMinutes: startMinutes,
@@ -56,7 +57,7 @@ void main() {
           existingBookings: [],
           durationMinutes: 30,
         );
-        expect(slots, ['09:00', '09:30']);
+        expect(slots, ['9:00 am', '9:30 am']);
       },
     );
 
@@ -67,7 +68,7 @@ void main() {
         existingBookings: [],
         durationMinutes: 15,
       );
-      expect(slots, ['09:00', '09:15', '09:30', '09:45']);
+      expect(slots, ['9:00 am', '9:15 am', '9:30 am', '9:45 am']);
     });
 
     test('generates correct slots for a 60 min service', () {
@@ -77,7 +78,7 @@ void main() {
         existingBookings: [],
         durationMinutes: 60,
       );
-      expect(slots, ['09:00', '10:00']);
+      expect(slots, ['9:00 am', '10:00 am']);
     });
 
     test('does not generate a slot that would exceed end of working hours', () {
@@ -88,8 +89,8 @@ void main() {
         existingBookings: [],
         durationMinutes: 60,
       );
-      expect(slots, ['09:00']);
-      expect(slots, isNot(contains('09:30')));
+      expect(slots, ['9:00 am']);
+      expect(slots, isNot(contains('9:30 am')));
     });
 
     // ─── Non-working day ─────────────────────────────────────────────────────
@@ -124,8 +125,8 @@ void main() {
         durationMinutes: 30,
       );
 
-      expect(slots, isNot(contains('09:00')));
-      expect(slots, contains('09:30'));
+      expect(slots, isNot(contains('9:00 am')));
+      expect(slots, contains('9:30 am'));
     });
 
     test('back-to-back bookings do not block each other', () {
@@ -142,7 +143,7 @@ void main() {
         durationMinutes: 30,
       );
 
-      expect(slots, contains('09:30'));
+      expect(slots, contains('9:30 am'));
     });
 
     test('slot partially overlapping start of existing booking is blocked', () {
@@ -158,7 +159,7 @@ void main() {
         durationMinutes: 30,
       );
 
-      expect(slots, isNot(contains('09:15')));
+      expect(slots, isNot(contains('9:15 am')));
     });
 
     test('slot partially overlapping end of existing booking is blocked', () {
@@ -175,7 +176,7 @@ void main() {
         durationMinutes: 30,
       );
 
-      expect(slots, isNot(contains('08:45')));
+      expect(slots, isNot(contains('8:45 am')));
     });
 
     test('all slots blocked when fully booked day', () {
@@ -204,6 +205,7 @@ void main() {
         serviceId: 'service_001',
         serviceName: 'General Checkup',
         serviceDurationMinutes: 30,
+        price: 50.0,
         date: '2024-03-18',
         startTime: '09:00',
         startMinutes: 540,
@@ -223,7 +225,7 @@ void main() {
         durationMinutes: 30,
       );
 
-      expect(slots, contains('09:00'));
+      expect(slots, contains('9:00 am'));
     });
 
     // ─── Saturday half day ───────────────────────────────────────────────────
@@ -241,9 +243,9 @@ void main() {
         durationMinutes: 30,
       );
 
-      expect(slots.first, '09:00');
-      expect(slots.last, '12:30');
-      expect(slots, isNot(contains('13:00')));
+      expect(slots.first, '9:00 am');
+      expect(slots.last, '12:30 pm');
+      expect(slots, isNot(contains('1:00 pm')));
     });
   });
 }

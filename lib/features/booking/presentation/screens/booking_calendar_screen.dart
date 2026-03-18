@@ -84,20 +84,73 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                           current is BookingScheduleLoaded ||
                           current is BookingInitial,
                       builder: (context, state) {
-                        return CalendarDatePicker(
-                          initialDate: _selectedDay ?? DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(
-                            const Duration(days: 90),
-                          ),
-                          selectableDayPredicate: (date) {
-                            if (state is BookingScheduleLoaded) {
+                        final today = DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                        );
+                        DateTime initial = _selectedDay != null
+                            ? DateTime(
+                                _selectedDay!.year,
+                                _selectedDay!.month,
+                                _selectedDay!.day,
+                              )
+                            : today;
+
+                        bool isSelectable(DateTime date) {
+                          if (state is BookingScheduleLoaded) {
+                            if (state.schedules.isEmpty) return true;
+                            try {
                               final daySchedule = state.schedules.firstWhere(
                                 (s) => s.dayOfWeek == date.weekday,
                               );
                               return daySchedule.isWorkingDay;
+                            } catch (e) {
+                              return false;
                             }
-                            return true;
+                          }
+                          return true;
+                        }
+
+                        bool found = isSelectable(initial);
+                        if (!found) {
+                          for (int i = 1; i <= 90; i++) {
+                            final nextDay = initial.add(Duration(days: i));
+                            if (isSelectable(nextDay)) {
+                              initial = nextDay;
+                              found = true;
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted &&
+                                    _selectedDay?.day != initial.day) {
+                                  setState(() {
+                                    _selectedDay = initial;
+                                  });
+                                  context
+                                      .read<BookingCubit>()
+                                      .loadAvailableSlots(
+                                        initial,
+                                        widget.service.durationMinutes,
+                                      );
+                                }
+                              });
+                              break;
+                            }
+                          }
+                        }
+
+                        return CalendarDatePicker(
+                          initialDate: initial,
+                          firstDate: today,
+                          lastDate: today.add(const Duration(days: 90)),
+                          selectableDayPredicate: (date) {
+                            // If we didn't find ANY valid day, we must allow the initial date to pass the layout assertion
+                            if (!found &&
+                                date.year == initial.year &&
+                                date.month == initial.month &&
+                                date.day == initial.day) {
+                              return true;
+                            }
+                            return isSelectable(date);
                           },
                           onDateChanged: (newDate) {
                             setState(() {

@@ -11,4 +11,5 @@ class Routes {
   static const String bookingDetails = '/bookingDetails';
   static const String bookingSuccess = '/bookingSuccess';
   static const String editProfile = '/editProfile';
+  static const String changePassword = '/changePassword';
 }

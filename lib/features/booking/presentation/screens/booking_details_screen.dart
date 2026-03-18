@@ -68,15 +68,27 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   }
 
   String _calculateEndTimeString(String startTime, int durationMinutes) {
-    final parts = startTime.split(':');
+    // Parse AM/PM format: "9:00 am" or "1:30 pm"
+    final lower = startTime.toLowerCase().trim();
+    final isPm = lower.contains('pm');
+    final timePart = lower.replaceAll('am', '').replaceAll('pm', '').trim();
+    final parts = timePart.split(':');
     if (parts.length != 2) return startTime;
-    final hours = int.tryParse(parts[0]) ?? 0;
+
+    int hours = int.tryParse(parts[0]) ?? 0;
     final mins = int.tryParse(parts[1]) ?? 0;
 
+    // Convert to 24h for arithmetic
+    if (isPm && hours != 12) hours += 12;
+    if (!isPm && hours == 12) hours = 0;
+
     final totalMins = hours * 60 + mins + durationMinutes;
-    final endHr = (totalMins ~/ 60).toString().padLeft(2, '0');
-    final endMin = (totalMins % 60).toString().padLeft(2, '0');
-    return '$endHr:$endMin';
+    final endTotalHours = totalMins ~/ 60;
+    final endMins = totalMins % 60;
+    final period = endTotalHours < 12 ? 'am' : 'pm';
+    final displayHour = endTotalHours % 12 == 0 ? 12 : endTotalHours % 12;
+    final mStr = endMins.toString().padLeft(2, '0');
+    return '$displayHour:$mStr $period';
   }
 
   @override

@@ -66,4 +66,30 @@ class ProfileCubit extends Cubit<ProfileState> {
       failure: (exception) => emit(ProfileFailure(exception.message)),
     );
   }
+
+  /// Change user password
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    final currentState = state;
+    if (currentState is! ProfileSuccess) {
+      emit(const ProfileFailure('User profile not loaded.'));
+      return;
+    }
+
+    emit(const ProfileLoading());
+
+    final result = await _profileRepository.changePassword(
+      currentPassword,
+      newPassword,
+    );
+
+    result.when(
+      success: (_) {
+        emit(currentState);
+      },
+      failure: (exception) => emit(ProfileFailure(exception.message)),
+    );
+  }
 }

@@ -2,6 +2,7 @@ class BookingDetails {
   final String serviceId;
   final String serviceName;
   final int serviceDurationMinutes;
+  final double price;
   final String date;
   final String startTime;
   final String userId;
@@ -14,6 +15,7 @@ class BookingDetails {
     required this.serviceId,
     required this.serviceName,
     required this.serviceDurationMinutes,
+    required this.price,
     required this.date,
     required this.startTime,
     required this.userId,

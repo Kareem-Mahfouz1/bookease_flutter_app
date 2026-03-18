@@ -5,6 +5,7 @@ class Booking {
   final String serviceId;
   final String serviceName;
   final int serviceDurationMinutes;
+  final double price;
   final String date;
   final String startTime;
   final int startMinutes;
@@ -22,6 +23,7 @@ class Booking {
     required this.serviceId,
     required this.serviceName,
     required this.serviceDurationMinutes,
+    required this.price,
     required this.date,
     required this.startTime,
     required this.startMinutes,
@@ -44,6 +46,7 @@ class Booking {
       serviceId: data['serviceId'] ?? '',
       serviceName: data['serviceName'] ?? '',
       serviceDurationMinutes: data['serviceDurationMinutes'] ?? 0,
+      price: (data['price'] ?? 0.0).toDouble(),
       date: data['date'] ?? '',
       startTime: data['startTime'] ?? '',
       startMinutes: data['startMinutes'] ?? 0,
@@ -64,6 +67,7 @@ class Booking {
       'serviceId': serviceId,
       'serviceName': serviceName,
       'serviceDurationMinutes': serviceDurationMinutes,
+      'price': price,
       'date': date,
       'startTime': startTime,
       'startMinutes': startMinutes,

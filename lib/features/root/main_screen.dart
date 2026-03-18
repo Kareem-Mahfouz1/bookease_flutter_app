@@ -1,4 +1,7 @@
-import 'package:appointment_booking/features/favorites/presentation/screens/favourites_screen.dart';
+import 'package:appointment_booking/core/services/firestore_service.dart';
+import 'package:appointment_booking/features/my_bookings/presentation/my_bookings_screen.dart';
+import 'package:appointment_booking/features/home/data/repos/home_repo.dart';
+import 'package:appointment_booking/features/home/logic/home_cubit.dart';
 import 'package:appointment_booking/features/home/presentation/screens/home_screen.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:appointment_booking/features/profile/presentation/screens/profile_screen.dart';
@@ -17,8 +20,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   final List<Widget> _pages = [
-    HomeScreen(),
-    MyBookingsScreen(),
+    BlocProvider(
+      create: (context) =>
+          HomeCubit(HomeRepository(firestoreService: FirestoreService()))
+            ..getServices(),
+      child: HomeScreen(),
+    ),
+    const MyBookingsScreen(),
     ProfileScreen(),
   ];
 

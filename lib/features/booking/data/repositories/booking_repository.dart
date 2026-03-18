@@ -89,6 +89,7 @@ class BookingRepository {
           serviceId: details.serviceId,
           serviceName: details.serviceName,
           serviceDurationMinutes: details.serviceDurationMinutes,
+          price: details.price,
           date: details.date,
           startTime: details.startTime,
           startMinutes: newStart,

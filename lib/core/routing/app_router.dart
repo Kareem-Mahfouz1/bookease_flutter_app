@@ -13,11 +13,9 @@ import 'package:appointment_booking/features/booking/presentation/screens/bookin
 import 'package:appointment_booking/features/booking/presentation/screens/booking_details_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/screens/booking_success_screen.dart';
 import 'package:appointment_booking/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:appointment_booking/features/profile/presentation/screens/change_password_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';
-import 'package:appointment_booking/features/home/logic/home_cubit.dart';
-import 'package:appointment_booking/features/home/data/repos/home_repo.dart';
-import 'package:appointment_booking/core/services/firestore_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -69,19 +67,8 @@ class AppRouter {
       ),
       GoRoute(
         path: Routes.main,
-        pageBuilder: (context, state) => MaterialPage(
-          key: state.pageKey,
-          child: MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (context) => HomeCubit(
-                  HomeRepository(firestoreService: FirestoreService()),
-                )..getServices(),
-              ),
-            ],
-            child: const MainScreen(),
-          ),
-        ),
+        pageBuilder: (context, state) =>
+            MaterialPage(key: state.pageKey, child: const MainScreen()),
       ),
       GoRoute(
         path: Routes.auth,
@@ -139,6 +126,15 @@ class AppRouter {
           return MaterialPage(
             key: state.pageKey,
             child: EditProfileScreen(user: state.extra as AppUser),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.changePassword,
+        pageBuilder: (context, state) {
+          return MaterialPage(
+            key: state.pageKey,
+            child: const ChangePasswordScreen(),
           );
         },
       ),

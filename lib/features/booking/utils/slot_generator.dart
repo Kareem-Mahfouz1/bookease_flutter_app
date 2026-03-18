@@ -61,8 +61,11 @@ class SlotGenerator {
   }
 
   static String _minutesToTimeString(int minutes) {
-    final h = (minutes ~/ 60).toString().padLeft(2, '0');
-    final m = (minutes % 60).toString().padLeft(2, '0');
-    return '$h:$m';
+    final totalHours = minutes ~/ 60;
+    final mins = minutes % 60;
+    final period = totalHours < 12 ? 'am' : 'pm';
+    final displayHour = totalHours % 12 == 0 ? 12 : totalHours % 12;
+    final mStr = mins.toString().padLeft(2, '0');
+    return '$displayHour:$mStr $period';
   }
 }

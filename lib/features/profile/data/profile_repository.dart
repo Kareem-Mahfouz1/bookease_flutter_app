@@ -157,4 +157,40 @@ class ProfileRepository {
       return Failure(UnknownException(e.toString()));
     }
   }
+
+  /// Change user password
+  Future<Result<void>> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    try {
+      final user = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (user == null || user.email == null) {
+        return const Failure(
+          AuthException('No authenticated user found', code: 'no-user'),
+        );
+      }
+
+      // Re-authenticate user with current password
+      final credential = firebase_auth.EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Update to new password
+      await user.updatePassword(newPassword);
+
+      return const Success(null);
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      String errorMessage = e.message ?? 'Authentication failed';
+      if (e.code == 'invalid-credential' || e.code == 'wrong-password') {
+        errorMessage =
+            'The current password you entered is incorrect. Please try again.';
+      }
+      return Failure(AuthException(errorMessage, code: e.code));
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
 }

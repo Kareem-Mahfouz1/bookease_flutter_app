@@ -298,7 +298,7 @@ class _HeroHeader extends StatelessWidget {
           },
           child: CircleAvatar(
             backgroundColor: Colors.white.withValues(alpha: 0.3),
-            child: const Icon(Icons.person, color: Colors.white),
+            child: const Icon(Icons.code, color: Colors.white),
           ),
         ),
       ],

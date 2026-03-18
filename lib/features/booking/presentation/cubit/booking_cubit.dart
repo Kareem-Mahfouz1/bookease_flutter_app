@@ -89,6 +89,7 @@ class BookingCubit extends Cubit<BookingState> {
       serviceId: selectedServiceData!.id,
       serviceName: selectedServiceData!.name,
       serviceDurationMinutes: selectedServiceData!.durationMinutes,
+      price: selectedServiceData!.price,
       date: DateFormat('yyyy-MM-dd').format(selectedDate!),
       startTime: selectedTimeSlot!,
       userId: userId,

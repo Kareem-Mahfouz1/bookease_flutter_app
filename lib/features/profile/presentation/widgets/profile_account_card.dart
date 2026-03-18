@@ -29,22 +29,24 @@ class ProfileAccountCard extends StatelessWidget {
               context.push(Routes.editProfile, extra: user);
             },
           ),
-          Divider(
-            height: 1,
-            indent: 30,
-            endIndent: 30,
-            color: theme.colorScheme.outlineVariant,
-          ),
-          ProfileIconTile(
-            iconData: Icons.lock_outline_rounded,
-            iconBg: theme.colorScheme.tertiaryContainer,
-            iconFg: theme.colorScheme.onTertiaryContainer,
-            title: 'Change Password',
-            subtitle: 'Update your account password',
-            onTap: () {
-              // TODO: email users only
-            },
-          ),
+          if (user.authProvider == AuthProvider.email) ...[
+            Divider(
+              height: 1,
+              indent: 30,
+              endIndent: 30,
+              color: theme.colorScheme.outlineVariant,
+            ),
+            ProfileIconTile(
+              iconData: Icons.lock_outline_rounded,
+              iconBg: theme.colorScheme.tertiaryContainer,
+              iconFg: theme.colorScheme.onTertiaryContainer,
+              title: 'Change Password',
+              subtitle: 'Update your account password',
+              onTap: () {
+                context.push(Routes.changePassword);
+              },
+            ),
+          ],
         ],
       ),
     );
