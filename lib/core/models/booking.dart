@@ -6,10 +6,8 @@ class Booking {
   final String serviceName;
   final int serviceDurationMinutes;
   final double price;
-  final String date;
-  final String startTime;
-  final int startMinutes;
-  final int endMinutes;
+  final DateTime appointmentStart;
+  final DateTime appointmentEnd;
   final String userId;
   final String customerName;
   final String customerEmail;
@@ -24,10 +22,8 @@ class Booking {
     required this.serviceName,
     required this.serviceDurationMinutes,
     required this.price,
-    required this.date,
-    required this.startTime,
-    required this.startMinutes,
-    required this.endMinutes,
+    required this.appointmentStart,
+    required this.appointmentEnd,
     required this.userId,
     required this.customerName,
     required this.customerEmail,
@@ -41,16 +37,20 @@ class Booking {
     final data = doc.data() as Map<String, dynamic>?;
     if (data == null) throw Exception('Booking document data was null');
 
+    final appointmentStart =
+        (data['appointmentStart'] as Timestamp?)?.toDate() ?? DateTime.now();
+    final appointmentEnd =
+        (data['appointmentEnd'] as Timestamp?)?.toDate() ??
+        appointmentStart.add(const Duration(minutes: 30));
+
     return Booking(
       id: doc.id,
       serviceId: data['serviceId'] ?? '',
       serviceName: data['serviceName'] ?? '',
       serviceDurationMinutes: data['serviceDurationMinutes'] ?? 0,
       price: (data['price'] ?? 0.0).toDouble(),
-      date: data['date'] ?? '',
-      startTime: data['startTime'] ?? '',
-      startMinutes: data['startMinutes'] ?? 0,
-      endMinutes: data['endMinutes'] ?? 0,
+      appointmentStart: appointmentStart,
+      appointmentEnd: appointmentEnd,
       userId: data['userId'] ?? '',
       customerName: data['customerName'] ?? '',
       customerEmail: data['customerEmail'] ?? '',
@@ -68,10 +68,8 @@ class Booking {
       'serviceName': serviceName,
       'serviceDurationMinutes': serviceDurationMinutes,
       'price': price,
-      'date': date,
-      'startTime': startTime,
-      'startMinutes': startMinutes,
-      'endMinutes': endMinutes,
+      'appointmentStart': Timestamp.fromDate(appointmentStart),
+      'appointmentEnd': Timestamp.fromDate(appointmentEnd),
       'userId': userId,
       'customerName': customerName,
       'customerEmail': customerEmail,

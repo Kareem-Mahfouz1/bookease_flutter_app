@@ -1,4 +1,3 @@
-import 'package:appointment_booking/core/helpers/time_formatter.dart';
 import 'package:appointment_booking/core/models/booking.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -18,22 +17,16 @@ class BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final isUpcoming =
-        booking.status == 'confirmed' && booking.date.compareTo(today) >= 0;
+        booking.status == 'confirmed' &&
+        booking.appointmentStart.isAfter(DateTime.now());
 
     // Format date: "Mon, 17 Mar 2026"
-    final parsedDate = DateTime.tryParse(booking.date);
-    final dateLabel = parsedDate != null
-        ? DateFormat('EEE, d MMM yyyy').format(parsedDate)
-        : booking.date;
-
-    // Format times from stored 24h strings
-    final startLabel = TimeFormatter.to12Hour(booking.startTime);
-    final endLabel = TimeFormatter.endTime24(
-      booking.startTime,
-      booking.serviceDurationMinutes,
-    );
+    final dateLabel = DateFormat(
+      'EEE, d MMM yyyy',
+    ).format(booking.appointmentStart);
+    final startLabel = DateFormat('h:mm a').format(booking.appointmentStart);
+    final endLabel = DateFormat('h:mm a').format(booking.appointmentEnd);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

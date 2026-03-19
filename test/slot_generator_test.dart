@@ -5,9 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 // Helper to create a minimal Booking for testing purposes
 Booking makeBooking({
-  required int startMinutes,
-  required int endMinutes,
-  String date = '2024-03-18',
+  required DateTime appointmentStart,
+  required DateTime appointmentEnd,
 }) {
   return Booking(
     id: 'test_id',
@@ -15,10 +14,8 @@ Booking makeBooking({
     serviceName: 'General Checkup',
     serviceDurationMinutes: 30,
     price: 50.0,
-    date: date,
-    startTime: '09:00',
-    startMinutes: startMinutes,
-    endMinutes: endMinutes,
+    appointmentStart: appointmentStart,
+    appointmentEnd: appointmentEnd,
     userId: 'user_001',
     customerName: 'Test User',
     customerEmail: 'test@test.com',
@@ -45,6 +42,8 @@ ClinicSchedule makeSchedule({
 }
 
 void main() {
+  final testDate = DateTime(2024, 3, 18);
+
   group('SlotGenerator', () {
     // ─── Basic slot generation ───────────────────────────────────────────────
 
@@ -56,8 +55,13 @@ void main() {
           schedule: schedule,
           existingBookings: [],
           durationMinutes: 30,
+          selectedDate: testDate,
         );
-        expect(slots, ['9:00 am', '9:30 am']);
+        expect(slots.length, 2);
+        expect(slots[0].hour, 9);
+        expect(slots[0].minute, 0);
+        expect(slots[1].hour, 9);
+        expect(slots[1].minute, 30);
       },
     );
 
@@ -67,8 +71,10 @@ void main() {
         schedule: schedule,
         existingBookings: [],
         durationMinutes: 15,
+        selectedDate: testDate,
       );
-      expect(slots, ['9:00 am', '9:15 am', '9:30 am', '9:45 am']);
+      expect(slots.map((s) => s.hour), [9, 9, 9, 9]);
+      expect(slots.map((s) => s.minute), [0, 15, 30, 45]);
     });
 
     test('generates correct slots for a 60 min service', () {
@@ -77,8 +83,13 @@ void main() {
         schedule: schedule,
         existingBookings: [],
         durationMinutes: 60,
+        selectedDate: testDate,
       );
-      expect(slots, ['9:00 am', '10:00 am']);
+      expect(slots.length, 2);
+      expect(slots[0].hour, 9);
+      expect(slots[0].minute, 0);
+      expect(slots[1].hour, 10);
+      expect(slots[1].minute, 0);
     });
 
     test('does not generate a slot that would exceed end of working hours', () {
@@ -88,9 +99,12 @@ void main() {
         schedule: schedule,
         existingBookings: [],
         durationMinutes: 60,
+        selectedDate: testDate,
       );
-      expect(slots, ['9:00 am']);
-      expect(slots, isNot(contains('9:30 am')));
+      expect(slots.length, 1);
+      expect(slots[0].hour, 9);
+      expect(slots[0].minute, 0);
+      expect(slots.where((s) => s.hour == 9 && s.minute == 30), isEmpty);
     });
 
     // ─── Non-working day ─────────────────────────────────────────────────────
@@ -106,6 +120,7 @@ void main() {
         schedule: schedule,
         existingBookings: [],
         durationMinutes: 30,
+        selectedDate: testDate,
       );
       expect(slots, isEmpty);
     });
@@ -116,17 +131,21 @@ void main() {
       final schedule = makeSchedule(startTime: '09:00', endTime: '10:00');
       // booking occupies 09:00 - 09:30 (540 - 570)
       final existingBookings = [
-        makeBooking(startMinutes: 540, endMinutes: 570),
+        makeBooking(
+          appointmentStart: DateTime(2024, 3, 18, 9, 0),
+          appointmentEnd: DateTime(2024, 3, 18, 9, 30),
+        ),
       ];
 
       final slots = SlotGenerator.generateAvailableSlots(
         schedule: schedule,
         existingBookings: existingBookings,
         durationMinutes: 30,
+        selectedDate: testDate,
       );
 
-      expect(slots, isNot(contains('9:00 am')));
-      expect(slots, contains('9:30 am'));
+      expect(slots.where((s) => s.hour == 9 && s.minute == 0), isEmpty);
+      expect(slots.where((s) => s.hour == 9 && s.minute == 30), isNotEmpty);
     });
 
     test('back-to-back bookings do not block each other', () {
@@ -134,32 +153,40 @@ void main() {
       // slotStart(570) < bookingEnd(570) is FALSE → not blocked
       final schedule = makeSchedule(startTime: '09:00', endTime: '10:00');
       final existingBookings = [
-        makeBooking(startMinutes: 540, endMinutes: 570),
+        makeBooking(
+          appointmentStart: DateTime(2024, 3, 18, 9, 0),
+          appointmentEnd: DateTime(2024, 3, 18, 9, 30),
+        ),
       ];
 
       final slots = SlotGenerator.generateAvailableSlots(
         schedule: schedule,
         existingBookings: existingBookings,
         durationMinutes: 30,
+        selectedDate: testDate,
       );
 
-      expect(slots, contains('9:30 am'));
+      expect(slots.where((s) => s.hour == 9 && s.minute == 30), isNotEmpty);
     });
 
     test('slot partially overlapping start of existing booking is blocked', () {
       // slot 09:15-09:45, booking 09:30-10:00 → overlap → blocked
       final schedule = makeSchedule(startTime: '09:00', endTime: '10:00');
       final existingBookings = [
-        makeBooking(startMinutes: 570, endMinutes: 600),
+        makeBooking(
+          appointmentStart: DateTime(2024, 3, 18, 9, 30),
+          appointmentEnd: DateTime(2024, 3, 18, 10, 0),
+        ),
       ];
 
       final slots = SlotGenerator.generateAvailableSlots(
         schedule: schedule,
         existingBookings: existingBookings,
         durationMinutes: 30,
+        selectedDate: testDate,
       );
 
-      expect(slots, isNot(contains('9:15 am')));
+      expect(slots.where((s) => s.hour == 9 && s.minute == 15), isEmpty);
     });
 
     test('slot partially overlapping end of existing booking is blocked', () {
@@ -167,31 +194,48 @@ void main() {
       // testing that a slot ending inside a booking is also excluded
       final schedule = makeSchedule(startTime: '08:00', endTime: '10:00');
       final existingBookings = [
-        makeBooking(startMinutes: 540, endMinutes: 570),
+        makeBooking(
+          appointmentStart: DateTime(2024, 3, 18, 9, 0),
+          appointmentEnd: DateTime(2024, 3, 18, 9, 30),
+        ),
       ];
 
       final slots = SlotGenerator.generateAvailableSlots(
         schedule: schedule,
         existingBookings: existingBookings,
         durationMinutes: 30,
+        selectedDate: testDate,
       );
 
-      expect(slots, isNot(contains('8:45 am')));
+      expect(slots.where((s) => s.hour == 8 && s.minute == 45), isEmpty);
     });
 
     test('all slots blocked when fully booked day', () {
       final schedule = makeSchedule(startTime: '09:00', endTime: '11:00');
       final existingBookings = [
-        makeBooking(startMinutes: 540, endMinutes: 570), // 09:00-09:30
-        makeBooking(startMinutes: 570, endMinutes: 600), // 09:30-10:00
-        makeBooking(startMinutes: 600, endMinutes: 630), // 10:00-10:30
-        makeBooking(startMinutes: 630, endMinutes: 660), // 10:30-11:00
+        makeBooking(
+          appointmentStart: DateTime(2024, 3, 18, 9, 0),
+          appointmentEnd: DateTime(2024, 3, 18, 9, 30),
+        ),
+        makeBooking(
+          appointmentStart: DateTime(2024, 3, 18, 9, 30),
+          appointmentEnd: DateTime(2024, 3, 18, 10, 0),
+        ),
+        makeBooking(
+          appointmentStart: DateTime(2024, 3, 18, 10, 0),
+          appointmentEnd: DateTime(2024, 3, 18, 10, 30),
+        ),
+        makeBooking(
+          appointmentStart: DateTime(2024, 3, 18, 10, 30),
+          appointmentEnd: DateTime(2024, 3, 18, 11, 0),
+        ),
       ];
 
       final slots = SlotGenerator.generateAvailableSlots(
         schedule: schedule,
         existingBookings: existingBookings,
         durationMinutes: 30,
+        selectedDate: testDate,
       );
 
       expect(slots, isEmpty);
@@ -206,10 +250,8 @@ void main() {
         serviceName: 'General Checkup',
         serviceDurationMinutes: 30,
         price: 50.0,
-        date: '2024-03-18',
-        startTime: '09:00',
-        startMinutes: 540,
-        endMinutes: 570,
+        appointmentStart: DateTime(2024, 3, 18, 9, 0),
+        appointmentEnd: DateTime(2024, 3, 18, 9, 30),
         userId: 'user_001',
         customerName: 'Test User',
         customerEmail: 'test@test.com',
@@ -223,9 +265,10 @@ void main() {
         schedule: schedule,
         existingBookings: [cancelledBooking],
         durationMinutes: 30,
+        selectedDate: testDate,
       );
 
-      expect(slots, contains('9:00 am'));
+      expect(slots.where((s) => s.hour == 9 && s.minute == 0), isNotEmpty);
     });
 
     // ─── Saturday half day ───────────────────────────────────────────────────
@@ -241,11 +284,14 @@ void main() {
         schedule: schedule,
         existingBookings: [],
         durationMinutes: 30,
+        selectedDate: testDate,
       );
 
-      expect(slots.first, '9:00 am');
-      expect(slots.last, '12:30 pm');
-      expect(slots, isNot(contains('1:00 pm')));
+      expect(slots.first.hour, 9);
+      expect(slots.first.minute, 0);
+      expect(slots.last.hour, 12);
+      expect(slots.last.minute, 30);
+      expect(slots.where((s) => s.hour == 13 && s.minute == 0), isEmpty);
     });
   });
 }

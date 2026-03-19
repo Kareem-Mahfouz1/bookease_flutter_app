@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_state.dart';
+import 'package:intl/intl.dart';
 
 class BookingCalendarScreen extends StatefulWidget {
   final ServiceModel service;
@@ -17,6 +18,7 @@ class BookingCalendarScreen extends StatefulWidget {
 
 class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
   DateTime? _selectedDay;
+  final DateFormat _timeFormat = DateFormat('h:mm a');
 
   @override
   void initState() {
@@ -202,7 +204,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                 }
 
                 if (state is BookingSlotsLoaded &&
-                    state.selectedDate == _selectedDay) {
+                    _isSameDate(state.selectedDate, _selectedDay)) {
                   if (state.availableSlots.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40),
@@ -227,6 +229,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                       itemCount: state.availableSlots.length,
                       itemBuilder: (context, index) {
                         final slot = state.availableSlots[index];
+                        final slotLabel = _timeFormat.format(slot);
                         final isSelected =
                             context.read<BookingCubit>().selectedTimeSlot ==
                             slot;
@@ -252,7 +255,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                               ),
                             ),
                             child: Text(
-                              slot,
+                              slotLabel,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
@@ -310,5 +313,10 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
         },
       ),
     );
+  }
+
+  bool _isSameDate(DateTime a, DateTime? b) {
+    if (b == null) return false;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }

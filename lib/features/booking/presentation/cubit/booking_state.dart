@@ -13,7 +13,7 @@ class BookingScheduleLoaded extends BookingState {
 }
 
 class BookingSlotsLoaded extends BookingState {
-  final List<String> availableSlots;
+  final List<DateTime> availableSlots;
   final DateTime selectedDate;
   BookingSlotsLoaded(this.availableSlots, this.selectedDate);
 }

@@ -2,11 +2,11 @@ import 'package:appointment_booking/core/models/booking.dart';
 import 'package:appointment_booking/features/booking/data/models/clinic_schedule.dart';
 
 class SlotGenerator {
-  static List<String> generateAvailableSlots({
+  static List<DateTime> generateAvailableSlots({
     required ClinicSchedule schedule,
     required List<Booking> existingBookings,
     required int durationMinutes,
-    DateTime? selectedDate,
+    required DateTime selectedDate,
   }) {
     if (!schedule.isWorkingDay) {
       return [];
@@ -15,37 +15,43 @@ class SlotGenerator {
     final scheduleStart = _timeStringToMinutes(schedule.startTime);
     final scheduleEnd = _timeStringToMinutes(schedule.endTime);
 
-    final availableSlots = <String>[];
+    final availableSlots = <DateTime>[];
 
     final now = DateTime.now();
+    final selectedDay = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
     final isToday =
-        selectedDate != null &&
-        selectedDate.year == now.year &&
-        selectedDate.month == now.month &&
-        selectedDate.day == now.day;
-    final currentMinutes = isToday ? now.hour * 60 + now.minute : 0;
+        selectedDay.year == now.year &&
+        selectedDay.month == now.month &&
+        selectedDay.day == now.day;
 
     for (
       int slotStart = scheduleStart;
       slotStart <= scheduleEnd - durationMinutes;
       slotStart += durationMinutes
     ) {
-      if (isToday && slotStart <= currentMinutes) continue;
+      final slotStartDateTime = selectedDay.add(Duration(minutes: slotStart));
+      if (isToday && slotStartDateTime.isBefore(now)) continue;
 
       final slotEnd = slotStart + durationMinutes;
+      final slotEndDateTime = selectedDay.add(Duration(minutes: slotEnd));
       bool hasOverlap = false;
 
       for (final booking in existingBookings) {
         if (booking.status != 'confirmed') continue;
 
-        if (slotStart < booking.endMinutes && slotEnd > booking.startMinutes) {
+        if (slotStartDateTime.isBefore(booking.appointmentEnd) &&
+            slotEndDateTime.isAfter(booking.appointmentStart)) {
           hasOverlap = true;
           break;
         }
       }
 
       if (!hasOverlap) {
-        availableSlots.add(_minutesToTimeString(slotStart));
+        availableSlots.add(slotStartDateTime);
       }
     }
 
@@ -58,14 +64,5 @@ class SlotGenerator {
     final hours = int.tryParse(parts[0]) ?? 0;
     final minutes = int.tryParse(parts[1]) ?? 0;
     return hours * 60 + minutes;
-  }
-
-  static String _minutesToTimeString(int minutes) {
-    final totalHours = minutes ~/ 60;
-    final mins = minutes % 60;
-    final period = totalHours < 12 ? 'am' : 'pm';
-    final displayHour = totalHours % 12 == 0 ? 12 : totalHours % 12;
-    final mStr = mins.toString().padLeft(2, '0');
-    return '$displayHour:$mStr $period';
   }
 }

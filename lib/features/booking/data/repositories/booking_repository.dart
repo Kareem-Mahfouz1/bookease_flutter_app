@@ -4,6 +4,7 @@ import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/features/booking/data/models/booking_details.dart';
 import 'package:appointment_booking/features/booking/data/models/clinic_schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class BookingRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -37,11 +38,18 @@ class BookingRepository {
     }
   }
 
-  Future<Result<List<Booking>>> getBookingsForDate(String date) async {
+  Future<Result<List<Booking>>> getBookingsForDate(DateTime date) async {
     try {
+      final dayStart = DateTime(date.year, date.month, date.day);
+      final dayEnd = dayStart.add(const Duration(days: 1));
+
       final snapshot = await _firestore
           .collection('bookings')
-          .where('date', isEqualTo: date)
+          .where(
+            'appointmentStart',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(dayStart),
+          )
+          .where('appointmentStart', isLessThan: Timestamp.fromDate(dayEnd))
           .where('status', isEqualTo: 'confirmed')
           .get();
       final bookings = snapshot.docs
@@ -55,11 +63,16 @@ class BookingRepository {
 
   Future<Result<Booking>> createBooking(BookingDetails details) async {
     try {
-      final docRef = _firestore.collection('daily_slots').doc(details.date);
+      final slotsDateKey = DateFormat(
+        'yyyy-MM-dd',
+      ).format(details.appointmentStart);
+      final docRef = _firestore.collection('daily_slots').doc(slotsDateKey);
       final bookingRef = _firestore.collection('bookings').doc();
 
-      final newStart = _timeStringToMinutes(details.startTime);
-      final newEnd = newStart + details.serviceDurationMinutes;
+      final newStart =
+          details.appointmentStart.hour * 60 + details.appointmentStart.minute;
+      final newEnd =
+          details.appointmentEnd.hour * 60 + details.appointmentEnd.minute;
 
       await _firestore.runTransaction((tx) async {
         final snapshot = await tx.get(docRef);
@@ -90,10 +103,8 @@ class BookingRepository {
           serviceName: details.serviceName,
           serviceDurationMinutes: details.serviceDurationMinutes,
           price: details.price,
-          date: details.date,
-          startTime: details.startTime,
-          startMinutes: newStart,
-          endMinutes: newEnd,
+          appointmentStart: details.appointmentStart,
+          appointmentEnd: details.appointmentEnd,
           userId: details.userId,
           customerName: details.customerName,
           customerEmail: details.customerEmail,
@@ -131,16 +142,29 @@ class BookingRepository {
         }
 
         final now = DateTime.now();
-        final bookingDate = DateTime.parse(booking.date);
         final today = DateTime(now.year, now.month, now.day);
+        final bookingDate = DateTime(
+          booking.appointmentStart.year,
+          booking.appointmentStart.month,
+          booking.appointmentStart.day,
+        );
 
         if (bookingDate.isBefore(today)) {
           throw const ServerException('Cannot cancel a past booking');
         }
 
+        final bookingStartMinutes =
+            booking.appointmentStart.hour * 60 +
+            booking.appointmentStart.minute;
+        final bookingEndMinutes =
+            booking.appointmentEnd.hour * 60 + booking.appointmentEnd.minute;
+        final slotsDateKey = DateFormat(
+          'yyyy-MM-dd',
+        ).format(booking.appointmentStart);
+
         final slotsDocRef = _firestore
             .collection('daily_slots')
-            .doc(booking.date);
+            .doc(slotsDateKey);
         final slotsSnapshot = await tx.get(slotsDocRef);
 
         if (slotsSnapshot.exists) {
@@ -150,8 +174,8 @@ class BookingRepository {
 
           intervals.removeWhere(
             (i) =>
-                i['startMinutes'] == booking.startMinutes &&
-                i['endMinutes'] == booking.endMinutes,
+                i['startMinutes'] == bookingStartMinutes &&
+                i['endMinutes'] == bookingEndMinutes,
           );
 
           tx.set(slotsDocRef, {
@@ -175,7 +199,7 @@ class BookingRepository {
       final snapshot = await _firestore
           .collection('bookings')
           .where('userId', isEqualTo: userId)
-          .orderBy('date', descending: true)
+          .orderBy('appointmentStart', descending: true)
           .get();
       final bookings = snapshot.docs
           .map((doc) => Booking.fromFirestore(doc))
@@ -184,13 +208,5 @@ class BookingRepository {
     } catch (e) {
       return Failure(UnknownException(e.toString()));
     }
-  }
-
-  int _timeStringToMinutes(String time) {
-    final parts = time.split(':');
-    if (parts.length != 2) return 0;
-    final hours = int.tryParse(parts[0]) ?? 0;
-    final minutes = int.tryParse(parts[1]) ?? 0;
-    return hours * 60 + minutes;
   }
 }

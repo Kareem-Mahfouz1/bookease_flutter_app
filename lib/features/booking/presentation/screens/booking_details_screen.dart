@@ -9,6 +9,7 @@ import 'package:appointment_booking/features/booking/presentation/cubit/booking_
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_state.dart';
 import 'package:appointment_booking/core/widgets/app_text_form_field.dart';
 import 'package:appointment_booking/core/helpers/validators.dart';
+import 'package:intl/intl.dart';
 
 class BookingDetailsScreen extends StatefulWidget {
   const BookingDetailsScreen({super.key});
@@ -67,30 +68,6 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     }
   }
 
-  String _calculateEndTimeString(String startTime, int durationMinutes) {
-    // Parse AM/PM format: "9:00 am" or "1:30 pm"
-    final lower = startTime.toLowerCase().trim();
-    final isPm = lower.contains('pm');
-    final timePart = lower.replaceAll('am', '').replaceAll('pm', '').trim();
-    final parts = timePart.split(':');
-    if (parts.length != 2) return startTime;
-
-    int hours = int.tryParse(parts[0]) ?? 0;
-    final mins = int.tryParse(parts[1]) ?? 0;
-
-    // Convert to 24h for arithmetic
-    if (isPm && hours != 12) hours += 12;
-    if (!isPm && hours == 12) hours = 0;
-
-    final totalMins = hours * 60 + mins + durationMinutes;
-    final endTotalHours = totalMins ~/ 60;
-    final endMins = totalMins % 60;
-    final period = endTotalHours < 12 ? 'am' : 'pm';
-    final displayHour = endTotalHours % 12 == 0 ? 12 : endTotalHours % 12;
-    final mStr = endMins.toString().padLeft(2, '0');
-    return '$displayHour:$mStr $period';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -104,16 +81,14 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
 
     final serviceName = cubit.selectedServiceData!.name;
     final price = cubit.selectedServiceData!.price;
-    final slot = cubit.selectedTimeSlot!;
-    final date = cubit.selectedDate ?? DateTime.now();
-
-    final dateStr =
-        '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-    final endTimeStr = _calculateEndTimeString(
-      slot,
-      cubit.selectedServiceData!.durationMinutes,
+    final appointmentStart = cubit.selectedTimeSlot!;
+    final appointmentEnd = appointmentStart.add(
+      Duration(minutes: cubit.selectedServiceData!.durationMinutes),
     );
-    final timeStr = '$slot - $endTimeStr';
+
+    final dateStr = DateFormat('EEE, d MMM yyyy').format(appointmentStart);
+    final timeStr =
+        '${DateFormat('h:mm a').format(appointmentStart)} - ${DateFormat('h:mm a').format(appointmentEnd)}';
 
     return Scaffold(
       appBar: AppBar(

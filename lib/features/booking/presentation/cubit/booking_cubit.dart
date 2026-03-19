@@ -4,13 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:appointment_booking/features/booking/data/repositories/booking_repository.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_state.dart';
 import 'package:appointment_booking/core/models/service_model.dart';
-import 'package:intl/intl.dart';
 
 class BookingCubit extends Cubit<BookingState> {
   final BookingRepository _bookingRepository;
 
   DateTime? selectedDate;
-  String? selectedTimeSlot;
+  DateTime? selectedTimeSlot;
   ServiceModel? selectedServiceData;
 
   BookingCubit(this._bookingRepository) : super(BookingInitial());
@@ -19,7 +18,7 @@ class BookingCubit extends Cubit<BookingState> {
     selectedServiceData = serviceData;
   }
 
-  void selectTimeSlot(String slot) {
+  void selectTimeSlot(DateTime slot) {
     selectedTimeSlot = slot;
   }
 
@@ -45,9 +44,8 @@ class BookingCubit extends Cubit<BookingState> {
           return;
         }
 
-        final dateString = DateFormat('yyyy-MM-dd').format(date);
         final bookingsResult = await _bookingRepository.getBookingsForDate(
-          dateString,
+          date,
         );
 
         bookingsResult.when(
@@ -90,8 +88,10 @@ class BookingCubit extends Cubit<BookingState> {
       serviceName: selectedServiceData!.name,
       serviceDurationMinutes: selectedServiceData!.durationMinutes,
       price: selectedServiceData!.price,
-      date: DateFormat('yyyy-MM-dd').format(selectedDate!),
-      startTime: selectedTimeSlot!,
+      appointmentStart: selectedTimeSlot!,
+      appointmentEnd: selectedTimeSlot!.add(
+        Duration(minutes: selectedServiceData!.durationMinutes),
+      ),
       userId: userId,
       customerName: customerName,
       customerEmail: customerEmail,

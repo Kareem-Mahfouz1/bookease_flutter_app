@@ -3,8 +3,8 @@ class BookingDetails {
   final String serviceName;
   final int serviceDurationMinutes;
   final double price;
-  final String date;
-  final String startTime;
+  final DateTime appointmentStart;
+  final DateTime appointmentEnd;
   final String userId;
   final String customerName;
   final String customerEmail;
@@ -16,8 +16,8 @@ class BookingDetails {
     required this.serviceName,
     required this.serviceDurationMinutes,
     required this.price,
-    required this.date,
-    required this.startTime,
+    required this.appointmentStart,
+    required this.appointmentEnd,
     required this.userId,
     required this.customerName,
     required this.customerEmail,
