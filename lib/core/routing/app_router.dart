@@ -1,6 +1,8 @@
 import 'package:appointment_booking/core/helpers/constants.dart';
+import 'package:appointment_booking/core/helpers/notification_tab_notifier.dart';
 import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/models/service_model.dart';
+import 'package:appointment_booking/core/services/notification_service.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 import 'package:appointment_booking/features/auth/data/models/app_user.dart';
 import 'package:appointment_booking/features/auth/presentation/screens/auth_screen.dart';
@@ -19,12 +21,24 @@ import 'package:appointment_booking/features/booking/data/repositories/booking_r
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 
 /// The application router configuration using GoRouter
 class AppRouter {
   // Private constructor to prevent instantiation
   AppRouter._();
+
+  static bool _notificationsInitialized = false;
+  static final NotificationService _notificationService = NotificationService(
+    FirebaseFirestore.instance,
+    onReminderTapped: (bookingId) {
+      Future.delayed(Duration.zero, () {
+        router.go(Routes.main);
+        notificationTabNotifier.value = 1;
+      });
+    },
+  );
 
   /// Router configuration
   static final GoRouter router = GoRouter(
@@ -46,6 +60,11 @@ class AppRouter {
 
       if (!isAuthenticated) {
         return location == Routes.auth ? null : Routes.auth;
+      }
+
+      if (isAuthenticated && !_notificationsInitialized) {
+        await _notificationService.initialize();
+        _notificationsInitialized = true;
       }
 
       if (location == Routes.splash || location == Routes.auth) {

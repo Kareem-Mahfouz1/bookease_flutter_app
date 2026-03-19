@@ -1,3 +1,4 @@
+import 'package:appointment_booking/core/helpers/notification_tab_notifier.dart';
 import 'package:appointment_booking/core/services/firestore_service.dart';
 import 'package:appointment_booking/features/my_bookings/screens/my_bookings_screen.dart';
 import 'package:appointment_booking/features/home/data/repos/home_repo.dart';
@@ -5,6 +6,7 @@ import 'package:appointment_booking/features/home/presentation/cubit/home_cubit.
 import 'package:appointment_booking/features/home/presentation/screens/home_screen.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:appointment_booking/features/profile/presentation/screens/profile_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+
   final List<Widget> _pages = [
     BlocProvider(
       create: (context) =>
@@ -34,6 +37,41 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     context.read<ProfileCubit>().loadProfile();
+
+    // listen for notification tab switches
+    notificationTabNotifier.addListener(_onNotificationTabChanged);
+
+    // foreground snackbar listener
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (!mounted) return;
+      final title = message.notification?.title ?? 'Reminder';
+      final body = message.notification?.body ?? '';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$title — $body'),
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'View',
+            onPressed: () => setState(() => _selectedIndex = 1),
+          ),
+        ),
+      );
+    });
+  }
+
+  void _onNotificationTabChanged() {
+    if (!mounted) return;
+    final tab = notificationTabNotifier.value;
+    if (tab != 0) {
+      setState(() => _selectedIndex = tab);
+      notificationTabNotifier.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    notificationTabNotifier.removeListener(_onNotificationTabChanged);
+    super.dispose();
   }
 
   @override

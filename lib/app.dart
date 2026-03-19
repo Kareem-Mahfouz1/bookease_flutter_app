@@ -1,10 +1,12 @@
 import 'package:appointment_booking/core/routing/app_router.dart';
+import 'package:appointment_booking/core/services/notification_service.dart';
 import 'package:appointment_booking/core/theme/theme_cubit.dart';
 import 'package:appointment_booking/core/theme/themes.dart';
 import 'package:appointment_booking/features/auth/data/repositories/auth_repository.dart';
 import 'package:appointment_booking/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:appointment_booking/features/profile/data/repo/profile_repository.dart';
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_cubit.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,7 +20,11 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(
-          create: (_) => AuthCubit(AuthRepository(), ProfileRepository()),
+          create: (_) => AuthCubit(
+            AuthRepository(),
+            ProfileRepository(),
+            NotificationService(FirebaseFirestore.instance),
+          ),
         ),
         BlocProvider<ProfileCubit>(
           create: (_) =>
