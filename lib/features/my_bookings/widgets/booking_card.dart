@@ -193,6 +193,7 @@ class _StatusBadge extends StatelessWidget {
       'confirmed' => (Colors.green, 'Confirmed'),
       'completed' => (Colors.blueGrey, 'Completed'),
       'cancelled' => (Colors.red, 'Cancelled'),
+      'no_show' => (Colors.deepOrange, 'No Show'),
       _ => (Colors.orange, status),
     };
 

@@ -4,7 +4,13 @@ A full-featured Flutter mobile application for booking clinic appointments, buil
 
 ## Screenshots
 
-> Add 4–5 screenshots here: Home, Service Details, Booking Calendar, My Bookings, Profile
+| Splash | Login | Home |
+|---|---|---|
+| ![Splash Screen](screenshots/splash.png) | ![Login Screen](screenshots/login.png) | ![Home Screen](screenshots/home.png) |
+
+| Service Details | Bookings | Profile |
+|---|---|---|
+| ![Service Details Screen](screenshots/service.png) | ![My Bookings Screen](screenshots/bookings.png) | ![Profile Screen](screenshots/profile.png) |
 
 ## Features
 
@@ -12,6 +18,7 @@ A full-featured Flutter mobile application for booking clinic appointments, buil
 - 📅 **Smart Booking Flow** — Browse services, pick an available date and time slot, confirm appointment details
 - 🔒 **Double-booking Prevention** — Transactional slot reservation using a `daily_slots` concurrency control document in Firestore
 - 📋 **My Bookings** — View upcoming and past appointments, cancel confirmed bookings with automatic slot release
+- 🔔 **Appointment Reminder Notifications** — Push reminder is sent shortly before confirmed appointments via Firebase Cloud Messaging
 - 🔍 **Service Search** — Real-time client-side filtering of available clinic services
 - 👤 **Profile Management** — Edit display name and profile photo (Firebase Storage), change password (email users only)
 - 🌙 **Theme Support** — Light, dark, and system theme modes with persistent preference
@@ -20,6 +27,7 @@ A full-featured Flutter mobile application for booking clinic appointments, buil
 ### Technical Highlights
 - Slot generation algorithm that calculates availability in minutes-since-midnight, correctly handling back-to-back appointments and partial overlaps
 - Firestore transactions for atomic booking creation and cancellation
+- Automated reminder pipeline using Firestore trigger + Cloud Tasks queue + Firebase Cloud Messaging
 - Role-aware UI (Google vs email/password users see different options)
 - Auth-gated navigation with onboarding completion tracking via SharedPreferences
 
@@ -88,11 +96,13 @@ The app uses the following Firebase services:
 - **Firebase Auth** — Email/password and Google Sign-In
 - **Cloud Firestore** — Services catalog, bookings, clinic schedule, daily slot concurrency control, user profiles
 - **Firebase Storage** — Profile photo uploads
+- **Firebase Cloud Messaging (FCM)** — Push notifications for appointment reminders
+- **Cloud Functions + Cloud Tasks** — Scheduled reminder dispatch after booking creation
 
 ### Firestore Collections
 | Collection | Purpose |
 |---|---|
-| `users/{uid}` | User profile documents |
+| `users/{uid}` | User profile documents + FCM token storage |
 | `services/{id}` | Clinic service catalog |
 | `clinic_schedule/{dayOfWeek}` | Working hours per day (1=Mon, 7=Sun) |
 | `bookings/{id}` | Appointment records |
@@ -111,14 +121,38 @@ flutter pub get
 flutter run
 ```
 
-### Seed Firestore data
-```bash
-# Seed services and clinic schedule
-dart run scripts/seed_services.dart
-node scripts/seed_schedule.js
-```
+
+
+## Related Project — Staff Dashboard (React)
+
+The admin dashboard is completed and maintained as a separate frontend that shares the same Firebase backend as this Flutter app.
+
+- **GitHub:** [bookease-dashboard](https://github.com/Kareem-Mahfouz1/bookease-dashboard)
+- **Live:** [bookease-39d4d.web.app](https://bookease-39d4d.web.app/)
+
+### Dashboard Highlights
+- **Dashboard** — Today's KPIs (bookings, confirmed, cancelled, revenue), weekly chart, progress ring, and today's appointments actions
+- **Bookings** — Full history with filters, expandable details, and staff actions (complete / no-show / cancel)
+- **Services** — Full CRUD, Firebase Storage image upload, active/inactive toggle, icon selector
+- **Schedule** — Weekly clinic hours management synced to booking availability
+- **Access Control** — Auth + role guard (`role: 'staff'`)
+
+### Dashboard Stack
+| Category | Technology |
+|---|---|
+| Framework | React 19 + TypeScript |
+| Build Tool | Vite |
+| Styling | Tailwind CSS v3 |
+| Routing | React Router v7 |
+| Data Fetching | TanStack Query v5 |
+| Backend | Firebase (Auth, Firestore, Storage) |
+| Charts | Recharts |
+
+### Mobile vs Dashboard
+| App | Primary Users | Responsibilities |
+|---|---|---|
+| Flutter App | Customers | Create and manage their own bookings |
+| React Dashboard | Clinic Staff | Manage all bookings, services, and schedule |
 
 ## Planned / Future Work
-- 🖥️ **React Web Dashboard** — Staff-facing admin panel for managing appointments and marking completions (separate app, same Firebase project)
 - 💳 **Payment Integration** — Stripe or PayPal checkout before booking confirmation
-- 🔔 **Push Notifications** — Appointment reminders via Firebase Cloud Messaging
