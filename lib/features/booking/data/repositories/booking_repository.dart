@@ -4,10 +4,12 @@ import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/features/booking/data/models/booking_details.dart';
 import 'package:appointment_booking/features/booking/data/models/clinic_schedule.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart' hide Result;
 import 'package:intl/intl.dart';
 
 class BookingRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   Future<Result<ClinicSchedule>> getClinicSchedule(DateTime date) async {
     try {
@@ -111,6 +113,8 @@ class BookingRepository {
           customerPhone: details.customerPhone,
           notes: details.notes,
           status: 'confirmed',
+          paymentStatus: 'pending',
+          paymentMethod: 'online',
           createdAt: DateTime.now(),
         ).toMap();
 
@@ -208,5 +212,103 @@ class BookingRepository {
     } catch (e) {
       return Failure(UnknownException(e.toString()));
     }
+  }
+
+  Future<
+    Result<
+      ({
+        String paymentToken,
+        String bookingId,
+        String? kioskReferenceNumber,
+        String? walletRedirectUrl,
+      })
+    >
+  >
+  initiateOnlinePayment(
+    BookingDetails details, {
+    required String onlinePaymentMethod,
+    String? walletPhoneNumber,
+  }) async {
+    try {
+      final callable = _functions.httpsCallable('createPaymobOrder');
+      final response = await callable.call<Map<String, dynamic>>({
+        'serviceId': details.serviceId,
+        'serviceName': details.serviceName,
+        'serviceDurationMinutes': details.serviceDurationMinutes,
+        'price': details.price,
+        'appointmentStart': details.appointmentStart.toUtc().toIso8601String(),
+        'appointmentEnd': details.appointmentEnd.toUtc().toIso8601String(),
+        'customerName': details.customerName,
+        'customerEmail': details.customerEmail,
+        'customerPhone': details.customerPhone,
+        'walletPhoneNumber': walletPhoneNumber,
+        'notes': details.notes,
+        'paymentMethod': 'online',
+        'onlinePaymentMethod': onlinePaymentMethod,
+      });
+
+      final data = response.data;
+      return Success((
+        paymentToken: data['payment_token'] as String,
+        bookingId: data['bookingId'] as String,
+        kioskReferenceNumber: data['kioskReferenceNumber'] as String?,
+        walletRedirectUrl: data['walletRedirectUrl'] as String?,
+      ));
+    } on FirebaseFunctionsException catch (e) {
+      return Failure(
+        ServerException(e.message ?? 'Payment initiation failed.'),
+      );
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  Future<Result<Booking>> createCashBooking(BookingDetails details) async {
+    try {
+      final callable = _functions.httpsCallable('createCashBooking');
+      final response = await callable.call<Map<String, dynamic>>({
+        'serviceId': details.serviceId,
+        'serviceName': details.serviceName,
+        'serviceDurationMinutes': details.serviceDurationMinutes,
+        'price': details.price,
+        'appointmentStart': details.appointmentStart.toUtc().toIso8601String(),
+        'appointmentEnd': details.appointmentEnd.toUtc().toIso8601String(),
+        'customerName': details.customerName,
+        'customerEmail': details.customerEmail,
+        'customerPhone': details.customerPhone,
+        'notes': details.notes,
+        'paymentMethod': 'cash',
+      });
+
+      final bookingId = response.data['bookingId'] as String;
+      final doc = await _firestore.collection('bookings').doc(bookingId).get();
+      return Success(Booking.fromFirestore(doc));
+    } on FirebaseFunctionsException catch (e) {
+      return Failure(ServerException(e.message ?? 'Cash booking failed.'));
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  Future<Result<void>> cancelPendingPaymobBooking(String bookingId) async {
+    try {
+      final callable = _functions.httpsCallable('cancelPendingPaymobBooking');
+      await callable.call<Map<String, dynamic>>({'bookingId': bookingId});
+      return const Success(null);
+    } on FirebaseFunctionsException catch (e) {
+      return Failure(
+        ServerException(e.message ?? 'Payment cancellation failed.'),
+      );
+    } catch (e) {
+      return Failure(UnknownException(e.toString()));
+    }
+  }
+
+  Stream<Booking> streamBooking(String bookingId) {
+    return _firestore
+        .collection('bookings')
+        .doc(bookingId)
+        .snapshots()
+        .map((doc) => Booking.fromFirestore(doc));
   }
 }

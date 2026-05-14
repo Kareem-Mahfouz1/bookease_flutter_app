@@ -14,6 +14,13 @@ class Booking {
   final String? customerPhone;
   final String? notes;
   final String status;
+  final String paymentStatus;
+  final String? paymobOrderId;
+  final String paymentMethod;
+  final String? onlinePaymentMethod;
+  final String? kioskReferenceNumber;
+  final String? walletPhoneNumber;
+  final String? walletRedirectUrl;
   final DateTime createdAt;
 
   const Booking({
@@ -30,6 +37,13 @@ class Booking {
     this.customerPhone,
     this.notes,
     required this.status,
+    required this.paymentStatus,
+    this.paymobOrderId,
+    required this.paymentMethod,
+    this.onlinePaymentMethod,
+    this.kioskReferenceNumber,
+    this.walletPhoneNumber,
+    this.walletRedirectUrl,
     required this.createdAt,
   });
 
@@ -57,6 +71,13 @@ class Booking {
       customerPhone: data['customerPhone'],
       notes: data['notes'],
       status: data['status'] ?? 'pending',
+      paymentStatus: data['paymentStatus'] ?? 'pending',
+      paymobOrderId: data['paymobOrderId'],
+      paymentMethod: data['paymentMethod'] ?? 'online',
+      onlinePaymentMethod: data['onlinePaymentMethod'],
+      kioskReferenceNumber: data['kioskReferenceNumber'],
+      walletPhoneNumber: data['walletPhoneNumber'],
+      walletRedirectUrl: data['walletRedirectUrl'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
@@ -76,6 +97,13 @@ class Booking {
       'customerPhone': customerPhone,
       'notes': notes,
       'status': status,
+      'paymentStatus': paymentStatus,
+      'paymobOrderId': paymobOrderId,
+      'paymentMethod': paymentMethod,
+      'onlinePaymentMethod': onlinePaymentMethod,
+      'kioskReferenceNumber': kioskReferenceNumber,
+      'walletPhoneNumber': walletPhoneNumber,
+      'walletRedirectUrl': walletRedirectUrl,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }

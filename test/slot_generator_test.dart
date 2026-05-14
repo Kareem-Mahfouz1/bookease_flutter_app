@@ -22,6 +22,8 @@ Booking makeBooking({
     customerPhone: null,
     notes: null,
     status: 'confirmed',
+    paymentStatus: 'pending',
+    paymentMethod: 'cash',
     createdAt: DateTime(2024, 3, 18),
   );
 }
@@ -256,6 +258,8 @@ void main() {
         customerName: 'Test User',
         customerEmail: 'test@test.com',
         status: 'cancelled',
+        paymentStatus: 'pending',
+        paymentMethod: 'cash',
         createdAt: DateTime(2024, 3, 18),
       );
 

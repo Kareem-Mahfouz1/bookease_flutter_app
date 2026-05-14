@@ -13,7 +13,13 @@ import 'package:appointment_booking/features/root/splash_screen.dart';
 import 'package:appointment_booking/features/home/presentation/screens/service_details_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/screens/booking_calendar_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/screens/booking_details_screen.dart';
+import 'package:appointment_booking/features/booking/presentation/screens/booking_payment_method_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/screens/booking_success_screen.dart';
+import 'package:appointment_booking/features/payment/presentation/screens/kiosk_reference_screen.dart';
+import 'package:appointment_booking/features/payment/presentation/screens/wallet_payment_screen.dart';
+import 'package:appointment_booking/features/payment/presentation/screens/card_payment_screen.dart';
+import 'package:appointment_booking/features/payment/presentation/payment_cubit.dart';
+import 'package:appointment_booking/features/payment/data/repositories/payment_repository.dart';
 import 'package:appointment_booking/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:appointment_booking/features/profile/presentation/screens/change_password_screen.dart';
 import 'package:appointment_booking/features/booking/presentation/cubit/booking_cubit.dart';
@@ -131,11 +137,69 @@ class AppRouter {
             ),
           ),
           GoRoute(
+            path: Routes.paymentMethod,
+            pageBuilder: (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const BookingPaymentMethodScreen(),
+            ),
+          ),
+          GoRoute(
             path: Routes.bookingSuccess,
             pageBuilder: (context, state) => MaterialPage(
               key: state.pageKey,
               child: const BookingSuccessScreen(),
             ),
+          ),
+          GoRoute(
+            path: Routes.payment,
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              return MaterialPage(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create: (context) =>
+                      PaymentCubit(PaymentRepository(BookingRepository())),
+                  child: CardPaymentScreen(
+                    paymentToken: extra['paymentToken'] as String,
+                    bookingId: extra['bookingId'] as String,
+                  ),
+                ),
+              );
+            },
+          ),
+          GoRoute(
+            path: Routes.kiosk,
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              return MaterialPage(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create: (context) =>
+                      PaymentCubit(PaymentRepository(BookingRepository())),
+                  child: KioskReferenceScreen(
+                    referenceNumber: extra['referenceNumber'] as String,
+                    bookingId: extra['bookingId'] as String,
+                  ),
+                ),
+              );
+            },
+          ),
+          GoRoute(
+            path: Routes.wallet,
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              return MaterialPage(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create: (context) =>
+                      PaymentCubit(PaymentRepository(BookingRepository())),
+                  child: WalletPaymentScreen(
+                    redirectUrl: extra['redirectUrl'] as String,
+                    bookingId: extra['bookingId'] as String,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

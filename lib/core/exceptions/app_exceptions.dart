@@ -74,6 +74,40 @@ class ServerException extends AppException {
       );
 }
 
+/// Payment related exceptions
+class PaymentException extends AppException {
+  const PaymentException(super.message, {super.code});
+
+  factory PaymentException.fromStatus(String status, [String? customMessage]) {
+    return switch (status) {
+      'paid_slot_unavailable' => const PaymentException(
+        'Payment was received, but this slot is no longer available. Please contact support.',
+        code: 'paid_slot_unavailable',
+      ),
+      'failed' => const PaymentException(
+        'Payment failed. Please try again.',
+        code: 'failed',
+      ),
+      'cancelled' => const PaymentException(
+        'Payment was cancelled.',
+        code: 'cancelled',
+      ),
+      'expired' => const PaymentException(
+        'Payment time expired. Please book again.',
+        code: 'expired',
+      ),
+      'paid_after_cancelled' => const PaymentException(
+        'Payment was received after this booking was cancelled. Please contact support.',
+        code: 'paid_after_cancelled',
+      ),
+      _ => PaymentException(
+        customMessage ?? 'A payment error occurred',
+        code: status,
+      ),
+    };
+  }
+}
+
 /// Unknown exceptions
 class UnknownException extends AppException {
   const UnknownException([String? message])

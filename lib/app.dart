@@ -38,6 +38,7 @@ class MyApp extends StatelessWidget {
         builder: (context, child) => BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
             return MaterialApp.router(
+              debugShowCheckedModeBanner: false,
               routerConfig: AppRouter.router,
               themeMode: themeMode,
               theme: AppTheme.light,

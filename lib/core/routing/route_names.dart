@@ -9,7 +9,11 @@ class Routes {
   static const String serviceDetails = '/serviceDetails';
   static const String bookingCalendar = '/bookingCalendar';
   static const String bookingDetails = '/bookingDetails';
+  static const String paymentMethod = '/paymentMethod';
   static const String bookingSuccess = '/bookingSuccess';
+  static const String payment = '/payment';
+  static const String kiosk = '/kiosk';
+  static const String wallet = '/wallet';
   static const String editProfile = '/editProfile';
   static const String changePassword = '/changePassword';
 }

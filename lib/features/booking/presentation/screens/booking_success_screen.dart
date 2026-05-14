@@ -18,6 +18,9 @@ class BookingSuccessScreen extends StatelessWidget {
       context.read<BookingCubit>().selectedDate = null;
       context.read<BookingCubit>().selectedTimeSlot = null;
       context.read<BookingCubit>().selectedServiceData = null;
+      context.read<BookingCubit>().pendingBookingDetails = null;
+      context.read<BookingCubit>().selectedPaymentMethod = 'online';
+      context.read<BookingCubit>().selectedOnlinePaymentMethod = 'card';
     });
 
     return Scaffold(
