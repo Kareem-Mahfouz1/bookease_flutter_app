@@ -12,10 +12,15 @@ A full-featured Flutter mobile application for booking clinic appointments, buil
 |---|---|---|
 | ![Service Details Screen](screenshots/service.png) | ![My Bookings Screen](screenshots/bookings.png) | ![Profile Screen](screenshots/profile.png) |
 
+| Payment Method | Card Checkout | Kiosk |
+|---|---|---|
+| ![Payment Method](screenshots/payment_method.png) | ![Card Checkout](screenshots/card_checkout.png) | ![Wallet/Kiosk](screenshots/wallet_kiosk.png) |
+
 ## Features
 
 ### Customer App
 - 📅 **Smart Booking Flow** — Browse services, pick an available date and time slot, confirm appointment details
+- 💳 **Secure Payments (Paymob)** — Integrated payment gateway supporting Credit/Debit Cards, Mobile Wallets, Cash collection, and Kiosk payments.
 - 🔒 **Double-booking Prevention** — Transactional slot reservation using a `daily_slots` concurrency control document in Firestore
 - 📋 **My Bookings** — View upcoming and past appointments, cancel confirmed bookings with automatic slot release
 - 🔔 **Appointment Reminder Notifications** — Push reminder is sent shortly before confirmed appointments via Firebase Cloud Messaging
@@ -27,6 +32,7 @@ A full-featured Flutter mobile application for booking clinic appointments, buil
 ### Technical Highlights
 - Slot generation algorithm that calculates availability in minutes-since-midnight, correctly handling back-to-back appointments and partial overlaps
 - Firestore transactions for atomic booking creation and cancellation
+- Paymob integration via Cloud Functions for secure order creation, HMAC webhook validation, and automated pending payment expiry
 - Automated reminder pipeline using Firestore trigger + Cloud Tasks queue + Firebase Cloud Messaging
 - Role-aware UI (Google vs email/password users see different options)
 - Auth-gated navigation with onboarding completion tracking via SharedPreferences
@@ -44,7 +50,8 @@ A full-featured Flutter mobile application for booking clinic appointments, buil
 
 ## Architecture
 
-The app follows **Clean Architecture** with a **feature-first** folder structure.
+The app follows **Clean Architecture** with a **feature-first** folder structure. Each feature encapsulates its own `data/` (repositories) and `presentation/` (screens, widgets, state management) layers.
+
 ```
 lib/
 ├── core/               # Shared infrastructure
@@ -52,16 +59,17 @@ lib/
 │   ├── helpers/        # Utilities, validators, formatters
 │   ├── models/         # Shared models (Booking, Service, Result)
 │   ├── routing/        # GoRouter config and route names
-│   ├── services/       # Firebase service abstractions
+│   ├── services/       # Firebase & native service abstractions
 │   ├── theme/          # ThemeCubit and ThemeData
 │   └── widgets/        # Shared UI components
 │
 └── features/
     ├── auth/           # Login, signup, Google Sign-In
-    ├── booking/        # Booking wizard, slot generation, repository
+    ├── booking/        # Booking wizard, slot generation, repositories
     ├── home/           # Service catalog, search, service details
     ├── my_bookings/    # Booking history, cancellation
     ├── onboarding/     # First-launch carousel
+    ├── payment/        # Paymob integration (Card, Wallet, Kiosk screens)
     ├── profile/        # Account management, theme settings
     └── root/           # App shell, bottom nav, splash
 ```
@@ -83,6 +91,8 @@ lib/
 | Service Details | Full service info with Book Now CTA |
 | Booking Calendar | Date picker + dynamic time slot grid |
 | Booking Details | Customer info form + booking summary |
+| Payment Method | Choose between Card, Wallet, Kiosk, or Cash |
+| Payment Checkout | Secure Paymob card iframe or Wallet/Kiosk instructions |
 | Booking Success | Confirmation receipt |
 | My Bookings | Upcoming and past appointments |
 | All Bookings | Full booking history list |
@@ -153,6 +163,3 @@ The admin dashboard is completed and maintained as a separate frontend that shar
 |---|---|---|
 | Flutter App | Customers | Create and manage their own bookings |
 | React Dashboard | Clinic Staff | Manage all bookings, services, and schedule |
-
-## Planned / Future Work
-- 💳 **Payment Integration** — Stripe or PayPal checkout before booking confirmation
