@@ -1,0 +1,34 @@
+            // Date and time row
+            Skeleton.replace(
+              height: 20, // Replacing the entire bottom row for compactness during skeleton phase
+              child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 16,
+                  color: theme.disabledColor,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  dateLabel,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.disabledColor,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Icon(
+                  Icons.access_time_outlined,
+                  size: 16,
+                  color: theme.disabledColor,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '$startLabel – $endLabel',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.disabledColor,
+                  ),
+                ),
+              ],
+            ),
+
+            // Cancel button — only for upcoming confirmed bookings

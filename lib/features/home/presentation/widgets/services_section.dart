@@ -6,6 +6,7 @@ import 'package:appointment_booking/core/helpers/service_icon_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class ServicesSection extends StatelessWidget {
   final int itemCount;
@@ -18,9 +19,42 @@ class ServicesSection extends StatelessWidget {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         if (state is HomeLoading || state is HomeInitial) {
-          return const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(child: CircularProgressIndicator()),
+          return SliverPadding(
+            padding: const EdgeInsets.all(16.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                Skeletonizer(
+                  enabled: true,
+                  child: Text(
+                    'Popular Services',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Skeletonizer(
+                  enabled: true,
+                  child: Column(
+                    children: List.generate(
+                      5,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: ServiceCard(
+                          icon: Icons.medical_services_outlined,
+                          serviceName: 'Loading Placeholder Text',
+                          description:
+                              'A very long description that spans multiple lines to show skeleton structure accurately.',
+                          duration: "45 min",
+                          price: "\$99.00",
+                          onTap: null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ]),
+            ),
           );
         }
 

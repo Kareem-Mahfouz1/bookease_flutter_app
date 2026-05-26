@@ -4,6 +4,7 @@ import 'package:appointment_booking/features/my_bookings/cubit/my_bookings_state
 import 'package:appointment_booking/features/my_bookings/widgets/booking_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class AllBookingsScreen extends StatelessWidget {
   final String title;
@@ -35,7 +36,18 @@ class AllBookingsScreen extends StatelessWidget {
         },
         builder: (context, state) {
           if (state is MyBookingsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Skeletonizer(
+              enabled: true,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (context, index) => BookingCard(
+                  booking: Booking.mock(),
+                  userId: userId,
+                  onCancel: onCancel,
+                ),
+              ),
+            );
           }
           return bookings.isEmpty
               ? const Center(child: Text('No bookings to show.'))

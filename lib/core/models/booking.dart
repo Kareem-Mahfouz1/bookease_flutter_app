@@ -107,4 +107,24 @@ class Booking {
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
+
+  /// Create a mock [Booking] instance primarily used for skeleton loaders.
+  factory Booking.mock() {
+    return Booking(
+      id: 'mock_booking_123',
+      serviceId: 'mock_service_123',
+      serviceName: 'heart screening',
+      serviceDurationMinutes: 60,
+      price: 15.0,
+      appointmentStart: DateTime.now().add(const Duration(days: 1)),
+      appointmentEnd: DateTime.now().add(const Duration(days: 1, hours: 1)),
+      userId: 'mock_user_123',
+      customerName: 'john doe',
+      customerEmail: 'loading@placeholder.com',
+      status: 'confirmed',
+      paymentStatus: 'paid',
+      paymentMethod: 'online',
+      createdAt: DateTime.now(),
+    );
+  }
 }

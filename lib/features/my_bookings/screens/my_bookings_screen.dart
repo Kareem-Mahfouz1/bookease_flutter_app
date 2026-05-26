@@ -10,6 +10,8 @@ import 'package:appointment_booking/features/profile/presentation/cubit/profile_
 import 'package:appointment_booking/features/profile/presentation/cubit/profile_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:appointment_booking/features/my_bookings/widgets/booking_card.dart';
 
 class MyBookingsScreen extends StatelessWidget {
   const MyBookingsScreen({super.key});
@@ -70,8 +72,17 @@ class _MyBookingsViewState extends State<_MyBookingsView> {
         child: BlocBuilder<MyBookingsCubit, MyBookingsState>(
           builder: (context, state) {
             return switch (state) {
-              MyBookingsInitial() || MyBookingsLoading() => const Center(
-                child: CircularProgressIndicator(),
+              MyBookingsInitial() || MyBookingsLoading() => Skeletonizer(
+                enabled: false,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: 3,
+                  itemBuilder: (context, index) => BookingCard(
+                    booking: Booking.mock(),
+                    userId: _userId ?? '',
+                    onCancel: _onCancel,
+                  ),
+                ),
               ),
               MyBookingsFailure(:final message) => MyBookingsErrorView(
                 message: message,

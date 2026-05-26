@@ -1,6 +1,7 @@
 import 'package:appointment_booking/core/models/booking.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class BookingCard extends StatelessWidget {
   final Booking booking;
@@ -123,26 +124,45 @@ class BookingCard extends StatelessWidget {
               ],
             ),
 
+            const SizedBox(height: 8),
+            // Payment info row
+            Row(
+              children: [
+                Icon(_getPaymentIcon(), size: 16, color: theme.disabledColor),
+                const SizedBox(width: 6),
+                Text(
+                  _getPaymentLabel(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.disabledColor,
+                  ),
+                ),
+                const Spacer(),
+                _PaymentStatusBadge(status: booking.paymentStatus),
+              ],
+            ),
+
             // Cancel button — only for upcoming confirmed bookings
             if (isUpcoming) ...[
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => _showCancelDialog(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
-                    side: BorderSide(
-                      color: theme.colorScheme.error.withValues(alpha: 0.5),
+              Skeleton.ignore(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => _showCancelDialog(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                      side: BorderSide(
+                        color: theme.colorScheme.error.withValues(alpha: 0.5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                    child: const Text(
+                      'Cancel Booking',
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  child: const Text(
-                    'Cancel Booking',
-                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -154,12 +174,31 @@ class BookingCard extends StatelessWidget {
   }
 
   Future<void> _showCancelDialog(BuildContext context) async {
+    final hasPaidOnline =
+        booking.paymentMethod == 'online' && booking.paymentStatus == 'paid';
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Cancel Booking'),
-        content: Text(
-          'Are you sure you want to cancel your "${booking.serviceName}" appointment?',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to cancel your "${booking.serviceName}" appointment?',
+            ),
+            if (hasPaidOnline) ...[
+              const SizedBox(height: 16),
+              Text(
+                'Since you paid online, your refund will be processed within 5-7 business days.',
+                style: TextStyle(
+                  color: Theme.of(ctx).colorScheme.error,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
         ),
         actions: [
           TextButton(
@@ -180,6 +219,26 @@ class BookingCard extends StatelessWidget {
     if (confirmed == true) {
       onCancel(booking.id, userId);
     }
+  }
+
+  IconData _getPaymentIcon() {
+    if (booking.paymentMethod == 'cash') return Icons.money;
+    return switch (booking.onlinePaymentMethod) {
+      'card' => Icons.credit_card,
+      'wallet' => Icons.account_balance_wallet_outlined,
+      'kiosk' => Icons.storefront_outlined,
+      _ => Icons.payment,
+    };
+  }
+
+  String _getPaymentLabel() {
+    if (booking.paymentMethod == 'cash') return 'Cash at Clinic';
+    return switch (booking.onlinePaymentMethod) {
+      'card' => 'Credit/Debit Card',
+      'wallet' => 'Mobile Wallet',
+      'kiosk' => 'Kiosk Payment',
+      _ => 'Online Payment',
+    };
   }
 }
 
@@ -207,8 +266,41 @@ class _StatusBadge extends StatelessWidget {
         label,
         style: TextStyle(
           color: color,
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _PaymentStatusBadge extends StatelessWidget {
+  final String status;
+  const _PaymentStatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final (color, label) = switch (status.toLowerCase()) {
+      'paid' => (Colors.green, 'Paid'),
+      'pending' => (Colors.orange, 'Pending'),
+      'refunded' => (Colors.blueGrey, 'Refunded'),
+      'failed' => (Colors.red, 'Failed'),
+      'expired' => (Colors.red, 'Expired'),
+      _ => (Colors.grey, status.toUpperCase()),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
