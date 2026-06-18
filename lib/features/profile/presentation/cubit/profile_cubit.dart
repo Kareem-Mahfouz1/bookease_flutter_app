@@ -3,7 +3,7 @@ import 'package:appointment_booking/features/profile/presentation/cubit/profile_
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:appointment_booking/features/auth/data/models/app_user.dart';
-import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepository _profileRepository;
@@ -40,7 +40,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   /// If [imageFile] is provided, it attempts to upload to Firebase Storage and update the [photoUrl].
   Future<void> updateProfile({
     String? newName,
-    File? imageFile,
+    XFile? imageFile,
     required AppUser currentUser,
   }) async {
     final uid = _firebaseAuth.currentUser?.uid;

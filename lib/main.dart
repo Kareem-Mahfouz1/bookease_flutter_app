@@ -3,6 +3,7 @@ import 'package:appointment_booking/core/helpers/constants.dart';
 import 'package:appointment_booking/core/helpers/shared_pref_helper.dart';
 import 'package:appointment_booking/core/services/notification_service.dart';
 import 'package:appointment_booking/core/theme/theme_cubit.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,9 @@ import 'package:appointment_booking/firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  if (!kIsWeb) {
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  }
 
   final themeMode = await SharedPrefHelper.getString(SharedPrefKeys.themeMode);
   final themeCubit = ThemeCubit();

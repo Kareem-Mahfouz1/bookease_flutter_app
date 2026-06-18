@@ -29,7 +29,7 @@ exports.onBookingCreated = onDocumentCreated(
         if (booking.status !== "confirmed") return;
 
         const appointmentStart = booking.appointmentStart.toDate();
-        const reminderTime = new Date(appointmentStart.getTime() - 2 * 60 * 1000);
+        const reminderTime = new Date(appointmentStart.getTime() - 60 * 60 * 1000);
         const now = new Date();
 
         logger.info(`Appointment start (UTC): ${appointmentStart.toISOString()}`);
@@ -442,268 +442,268 @@ exports.createPaymobOrder = onCall(
         ],
     },
     async (request) => {
-    const data = request.data;
-    const {
-        serviceId,
-        serviceName,
-        serviceDurationMinutes,
-        price,
-        appointmentStart,
-        appointmentEnd,
-        customerName,
-        customerEmail,
-        customerPhone,
-        walletPhoneNumber,
-        notes,
-        paymentMethod,
-        onlinePaymentMethod = "card"
-    } = data;
-
-    const userId = request.auth?.uid;
-    if (!userId) {
-        throw new HttpsError("unauthenticated", "User must be logged in.");
-    }
-
-    const normalizedOnlinePaymentMethod = normalizeOnlinePaymentMethod(onlinePaymentMethod);
-    const normalizedWalletPhoneNumber = normalizedOnlinePaymentMethod === "wallet"
-        ? normalizeWalletPhoneNumber(walletPhoneNumber || customerPhone)
-        : null;
-    let slotReserved = false;
-    let bookingRef = null;
-    try {
-        if (normalizedOnlinePaymentMethod === "kiosk") {
-            await checkSlotAvailable(appointmentStart, appointmentEnd);
-        } else {
-            await checkAndReserveSlot(appointmentStart, appointmentEnd);
-            slotReserved = true;
-        }
-
-        // 1. Authenticate with Paymob
-
-        const authRes = await fetch("https://accept.paymob.com/api/auth/tokens", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ api_key: PAYMOB_API_KEY.value() }),
-        });
-        if (!authRes.ok) {
-            const errorBody = await parsePaymobErrorResponse(authRes);
-            logPaymobError("auth", authRes, errorBody, {
-                onlinePaymentMethod: normalizedOnlinePaymentMethod,
-            });
-            throw new Error("Paymob auth failed");
-        }
-        const authData = await authRes.json();
-        const token = authData.token;
-
-        const amountCents = Math.round(price * 100);
-
-        // 2. Create Order
-        const orderRes = await fetch("https://accept.paymob.com/api/ecommerce/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                auth_token: token,
-                delivery_needed: "false",
-                amount_cents: amountCents.toString(),
-                currency: "EGP",
-                items: [
-                    {
-                        name: serviceName,
-                        amount_cents: amountCents.toString(),
-                        description: "Appointment booking",
-                        quantity: "1"
-                    }
-                ],
-            }),
-        });
-        if (!orderRes.ok) {
-            const errorBody = await parsePaymobErrorResponse(orderRes);
-            logPaymobError("order creation", orderRes, errorBody, {
-                onlinePaymentMethod: normalizedOnlinePaymentMethod,
-            });
-            throw new Error("Paymob order creation failed");
-        }
-        const orderData = await orderRes.json();
-        const orderId = orderData.id.toString();
-
-        // 3. Generate Payment Key
-        const integrationId = getPaymobIntegrationId(normalizedOnlinePaymentMethod);
-        const paymentKeyRes = await fetch("https://accept.paymob.com/api/acceptance/payment_keys", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                auth_token: token,
-                amount_cents: amountCents.toString(),
-                expiration: 3600,
-                order_id: orderId,
-                billing_data: {
-                    apartment: "NA",
-                    email: customerEmail,
-                    floor: "NA",
-                    first_name: customerName.split(" ")[0] || "NA",
-                    street: "NA",
-                    building: "NA",
-                    phone_number: customerPhone || "NA",
-                    shipping_method: "NA",
-                    postal_code: "NA",
-                    city: "NA",
-                    country: "EG",
-                    last_name: customerName.split(" ").slice(1).join(" ") || "NA",
-                    state: "NA",
-                },
-                currency: "EGP",
-                integration_id: integrationId,
-                lock_order_when_paid: "false"
-            }),
-        });
-        if (!paymentKeyRes.ok) {
-            const errorBody = await parsePaymobErrorResponse(paymentKeyRes);
-            logPaymobError("payment key generation", paymentKeyRes, errorBody, {
-                onlinePaymentMethod: normalizedOnlinePaymentMethod,
-                integrationId,
-                orderId,
-            });
-            throw new Error("Paymob payment key generation failed");
-        }
-        const paymentKeyData = await paymentKeyRes.json();
-        const paymentToken = paymentKeyData.token;
-        let kioskReferenceNumber = null;
-        let walletRedirectUrl = null;
-        const paymentExpiresAt = normalizedOnlinePaymentMethod === "kiosk"
-            ? null
-            : new Date(Date.now() + PAYMENT_HOLD_MINUTES * 60 * 1000);
-
-        bookingRef = getFirestore().collection("bookings").doc();
-        await bookingRef.set({
+        const data = request.data;
+        const {
             serviceId,
             serviceName,
             serviceDurationMinutes,
             price,
-            appointmentStart: new Date(appointmentStart),
-            appointmentEnd: new Date(appointmentEnd),
-            userId,
+            appointmentStart,
+            appointmentEnd,
             customerName,
             customerEmail,
-            customerPhone: customerPhone || null,
-            notes: notes || null,
-            status: "pending",
-            paymentStatus: "pending",
-            paymobOrderId: orderId,
-            paymentMethod: paymentMethod || "online",
-            onlinePaymentMethod: normalizedOnlinePaymentMethod,
-            kioskReferenceNumber,
-            walletPhoneNumber: normalizedWalletPhoneNumber,
-            walletRedirectUrl,
-            paymentExpiresAt,
-            createdAt: new Date(),
-        });
+            customerPhone,
+            walletPhoneNumber,
+            notes,
+            paymentMethod,
+            onlinePaymentMethod = "card"
+        } = data;
 
-        if (paymentExpiresAt) {
-            await enqueuePendingPaymentExpiry(bookingRef.id);
+        const userId = request.auth?.uid;
+        if (!userId) {
+            throw new HttpsError("unauthenticated", "User must be logged in.");
         }
 
-        if (normalizedOnlinePaymentMethod === "kiosk") {
-            const kioskPayRes = await fetch("https://accept.paymob.com/api/acceptance/payments/pay", {
+        const normalizedOnlinePaymentMethod = normalizeOnlinePaymentMethod(onlinePaymentMethod);
+        const normalizedWalletPhoneNumber = normalizedOnlinePaymentMethod === "wallet"
+            ? normalizeWalletPhoneNumber(walletPhoneNumber || customerPhone)
+            : null;
+        let slotReserved = false;
+        let bookingRef = null;
+        try {
+            if (normalizedOnlinePaymentMethod === "kiosk") {
+                await checkSlotAvailable(appointmentStart, appointmentEnd);
+            } else {
+                await checkAndReserveSlot(appointmentStart, appointmentEnd);
+                slotReserved = true;
+            }
+
+            // 1. Authenticate with Paymob
+
+            const authRes = await fetch("https://accept.paymob.com/api/auth/tokens", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ api_key: PAYMOB_API_KEY.value() }),
+            });
+            if (!authRes.ok) {
+                const errorBody = await parsePaymobErrorResponse(authRes);
+                logPaymobError("auth", authRes, errorBody, {
+                    onlinePaymentMethod: normalizedOnlinePaymentMethod,
+                });
+                throw new Error("Paymob auth failed");
+            }
+            const authData = await authRes.json();
+            const token = authData.token;
+
+            const amountCents = Math.round(price * 100);
+
+            // 2. Create Order
+            const orderRes = await fetch("https://accept.paymob.com/api/ecommerce/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    source: {
-                        identifier: "AGGREGATOR",
-                        subtype: "AGGREGATOR",
-                    },
-                    payment_token: paymentToken,
+                    auth_token: token,
+                    delivery_needed: "false",
+                    amount_cents: amountCents.toString(),
+                    currency: "EGP",
+                    items: [
+                        {
+                            name: serviceName,
+                            amount_cents: amountCents.toString(),
+                            description: "Appointment booking",
+                            quantity: "1"
+                        }
+                    ],
                 }),
             });
-            if (!kioskPayRes.ok) {
-                const errorBody = await parsePaymobErrorResponse(kioskPayRes);
-                logPaymobError("kiosk payment", kioskPayRes, errorBody, {
-                    integrationId,
-                    orderId,
+            if (!orderRes.ok) {
+                const errorBody = await parsePaymobErrorResponse(orderRes);
+                logPaymobError("order creation", orderRes, errorBody, {
+                    onlinePaymentMethod: normalizedOnlinePaymentMethod,
                 });
-                await markBookingPaymentFailed(bookingRef, "Paymob kiosk payment failed");
-                throw new Error("Paymob kiosk payment failed");
+                throw new Error("Paymob order creation failed");
             }
-            const kioskPayData = await kioskPayRes.json();
-            kioskReferenceNumber = kioskPayData.data?.bill_reference?.toString() || null;
+            const orderData = await orderRes.json();
+            const orderId = orderData.id.toString();
 
-            if (!kioskReferenceNumber) {
-                await markBookingPaymentFailed(bookingRef, "Paymob kiosk reference missing");
-                throw new HttpsError("failed-precondition", "Failed to create Fawry reference.");
-            }
-
-            await bookingRef.update({ kioskReferenceNumber });
-        }
-
-        if (normalizedOnlinePaymentMethod === "wallet") {
-            const walletPayRes = await fetch("https://accept.paymob.com/api/acceptance/payments/pay", {
+            // 3. Generate Payment Key
+            const integrationId = getPaymobIntegrationId(normalizedOnlinePaymentMethod);
+            const paymentKeyRes = await fetch("https://accept.paymob.com/api/acceptance/payment_keys", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    source: {
-                        identifier: normalizedWalletPhoneNumber,
-                        subtype: "WALLET",
+                    auth_token: token,
+                    amount_cents: amountCents.toString(),
+                    expiration: 3600,
+                    order_id: orderId,
+                    billing_data: {
+                        apartment: "NA",
+                        email: customerEmail,
+                        floor: "NA",
+                        first_name: customerName.split(" ")[0] || "NA",
+                        street: "NA",
+                        building: "NA",
+                        phone_number: customerPhone || "NA",
+                        shipping_method: "NA",
+                        postal_code: "NA",
+                        city: "NA",
+                        country: "EG",
+                        last_name: customerName.split(" ").slice(1).join(" ") || "NA",
+                        state: "NA",
                     },
-                    payment_token: paymentToken,
+                    currency: "EGP",
+                    integration_id: integrationId,
+                    lock_order_when_paid: "false"
                 }),
             });
-            if (!walletPayRes.ok) {
-                const errorBody = await parsePaymobErrorResponse(walletPayRes);
-                logPaymobError("wallet payment", walletPayRes, errorBody, {
+            if (!paymentKeyRes.ok) {
+                const errorBody = await parsePaymobErrorResponse(paymentKeyRes);
+                logPaymobError("payment key generation", paymentKeyRes, errorBody, {
+                    onlinePaymentMethod: normalizedOnlinePaymentMethod,
                     integrationId,
                     orderId,
-                    walletPhoneNumber: normalizedWalletPhoneNumber,
                 });
-                await markBookingPaymentFailed(bookingRef, "Paymob wallet payment failed");
-                if (slotReserved) {
-                    await releaseSlot(appointmentStart, appointmentEnd);
-                    slotReserved = false;
-                }
-                throw new Error("Paymob wallet payment failed");
+                throw new Error("Paymob payment key generation failed");
             }
-            const walletPayData = await walletPayRes.json();
-            walletRedirectUrl = walletPayData.redirect_url?.toString() || null;
+            const paymentKeyData = await paymentKeyRes.json();
+            const paymentToken = paymentKeyData.token;
+            let kioskReferenceNumber = null;
+            let walletRedirectUrl = null;
+            const paymentExpiresAt = normalizedOnlinePaymentMethod === "kiosk"
+                ? null
+                : new Date(Date.now() + PAYMENT_HOLD_MINUTES * 60 * 1000);
 
-            if (!walletRedirectUrl) {
-                const walletMessage = walletPayData.data?.message?.toString()
-                    || "Wallet payment could not be started.";
-                logger.error("Paymob wallet redirect URL missing", {
-                    integrationId,
-                    orderId,
-                    walletPhoneNumber: normalizedWalletPhoneNumber,
-                    walletPayData,
+            bookingRef = getFirestore().collection("bookings").doc();
+            await bookingRef.set({
+                serviceId,
+                serviceName,
+                serviceDurationMinutes,
+                price,
+                appointmentStart: new Date(appointmentStart),
+                appointmentEnd: new Date(appointmentEnd),
+                userId,
+                customerName,
+                customerEmail,
+                customerPhone: customerPhone || null,
+                notes: notes || null,
+                status: "pending",
+                paymentStatus: "pending",
+                paymobOrderId: orderId,
+                paymentMethod: paymentMethod || "online",
+                onlinePaymentMethod: normalizedOnlinePaymentMethod,
+                kioskReferenceNumber,
+                walletPhoneNumber: normalizedWalletPhoneNumber,
+                walletRedirectUrl,
+                paymentExpiresAt,
+                createdAt: new Date(),
+            });
+
+            if (paymentExpiresAt) {
+                await enqueuePendingPaymentExpiry(bookingRef.id);
+            }
+
+            if (normalizedOnlinePaymentMethod === "kiosk") {
+                const kioskPayRes = await fetch("https://accept.paymob.com/api/acceptance/payments/pay", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        source: {
+                            identifier: "AGGREGATOR",
+                            subtype: "AGGREGATOR",
+                        },
+                        payment_token: paymentToken,
+                    }),
                 });
-                await markBookingPaymentFailed(bookingRef, walletMessage);
-                if (slotReserved) {
-                    await releaseSlot(appointmentStart, appointmentEnd);
-                    slotReserved = false;
+                if (!kioskPayRes.ok) {
+                    const errorBody = await parsePaymobErrorResponse(kioskPayRes);
+                    logPaymobError("kiosk payment", kioskPayRes, errorBody, {
+                        integrationId,
+                        orderId,
+                    });
+                    await markBookingPaymentFailed(bookingRef, "Paymob kiosk payment failed");
+                    throw new Error("Paymob kiosk payment failed");
                 }
-                throw new HttpsError("failed-precondition", walletMessage);
+                const kioskPayData = await kioskPayRes.json();
+                kioskReferenceNumber = kioskPayData.data?.bill_reference?.toString() || null;
+
+                if (!kioskReferenceNumber) {
+                    await markBookingPaymentFailed(bookingRef, "Paymob kiosk reference missing");
+                    throw new HttpsError("failed-precondition", "Failed to create Fawry reference.");
+                }
+
+                await bookingRef.update({ kioskReferenceNumber });
             }
 
-            await bookingRef.update({ walletRedirectUrl });
-        }
+            if (normalizedOnlinePaymentMethod === "wallet") {
+                const walletPayRes = await fetch("https://accept.paymob.com/api/acceptance/payments/pay", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        source: {
+                            identifier: normalizedWalletPhoneNumber,
+                            subtype: "WALLET",
+                        },
+                        payment_token: paymentToken,
+                    }),
+                });
+                if (!walletPayRes.ok) {
+                    const errorBody = await parsePaymobErrorResponse(walletPayRes);
+                    logPaymobError("wallet payment", walletPayRes, errorBody, {
+                        integrationId,
+                        orderId,
+                        walletPhoneNumber: normalizedWalletPhoneNumber,
+                    });
+                    await markBookingPaymentFailed(bookingRef, "Paymob wallet payment failed");
+                    if (slotReserved) {
+                        await releaseSlot(appointmentStart, appointmentEnd);
+                        slotReserved = false;
+                    }
+                    throw new Error("Paymob wallet payment failed");
+                }
+                const walletPayData = await walletPayRes.json();
+                walletRedirectUrl = walletPayData.redirect_url?.toString() || null;
 
-        return {
-            payment_token: paymentToken,
-            bookingId: bookingRef.id,
-            kioskReferenceNumber,
-            walletRedirectUrl,
-        };
-    } catch (error) {
-        logger.error("createPaymobOrder error:", error);
-        if (slotReserved) {
-            try {
-                await releaseSlot(appointmentStart, appointmentEnd);
-            } catch (releaseError) {
-                logger.error("Failed to release slot after Paymob order error:", releaseError);
+                if (!walletRedirectUrl) {
+                    const walletMessage = walletPayData.data?.message?.toString()
+                        || "Wallet payment could not be started.";
+                    logger.error("Paymob wallet redirect URL missing", {
+                        integrationId,
+                        orderId,
+                        walletPhoneNumber: normalizedWalletPhoneNumber,
+                        walletPayData,
+                    });
+                    await markBookingPaymentFailed(bookingRef, walletMessage);
+                    if (slotReserved) {
+                        await releaseSlot(appointmentStart, appointmentEnd);
+                        slotReserved = false;
+                    }
+                    throw new HttpsError("failed-precondition", walletMessage);
+                }
+
+                await bookingRef.update({ walletRedirectUrl });
             }
+
+            return {
+                payment_token: paymentToken,
+                bookingId: bookingRef.id,
+                kioskReferenceNumber,
+                walletRedirectUrl,
+            };
+        } catch (error) {
+            logger.error("createPaymobOrder error:", error);
+            if (slotReserved) {
+                try {
+                    await releaseSlot(appointmentStart, appointmentEnd);
+                } catch (releaseError) {
+                    logger.error("Failed to release slot after Paymob order error:", releaseError);
+                }
+            }
+            if (error instanceof HttpsError) {
+                throw error;
+            }
+            throw new HttpsError("internal", "Failed to create Paymob order");
         }
-        if (error instanceof HttpsError) {
-            throw error;
-        }
-        throw new HttpsError("internal", "Failed to create Paymob order");
-    }
-});
+    });
 
 exports.createCashBooking = onCall({}, async (request) => {
     const data = request.data;

@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "bookease-39d4d"
-  }
+  },
+  "targets": {
+    "bookease-39d4d": {
+      "hosting": {
+        "app": [
+          "bookease-customer"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

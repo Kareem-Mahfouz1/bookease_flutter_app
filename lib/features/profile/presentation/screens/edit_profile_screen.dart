@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:io' as io;
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:appointment_booking/core/widgets/app_text_form_field.dart';
 import 'package:appointment_booking/features/auth/data/models/app_user.dart';
@@ -20,7 +21,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _nameController;
-  File? _selectedImage;
+  XFile? _selectedImage;
   final ImagePickerService _imagePickerService = ImagePickerService();
 
   @override
@@ -65,7 +66,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
       if (pickedFile != null) {
         setState(() {
-          _selectedImage = File(pickedFile.path);
+          _selectedImage = pickedFile;
         });
       }
     }
@@ -84,6 +85,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    ImageProvider? getSelectedImageProvider() {
+      if (_selectedImage == null) return null;
+      if (kIsWeb) return NetworkImage(_selectedImage!.path);
+      return FileImage(io.File(_selectedImage!.path));
+    }
 
     return BlocConsumer<ProfileCubit, ProfileState>(
       listener: (context, state) {
@@ -141,7 +148,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               backgroundColor:
                                   theme.colorScheme.surfaceContainerHighest,
                               backgroundImage: _selectedImage != null
-                                  ? FileImage(_selectedImage!) as ImageProvider
+                                  ? getSelectedImageProvider()
                                   : (widget.user.photoUrl != null
                                         ? NetworkImage(widget.user.photoUrl!)
                                         : null),

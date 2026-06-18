@@ -37,6 +37,13 @@
             {
               "client_id": "121715619546-i05vmm4evkoq5vd2vdfi23smhci0vnp8.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "121715619546-vemtak6gaubr0sgs205oavmka4m86b6p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appointmentBooking"
+              }
             }
           ]
         }

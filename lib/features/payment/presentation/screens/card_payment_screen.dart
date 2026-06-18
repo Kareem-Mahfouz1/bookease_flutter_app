@@ -1,9 +1,11 @@
 import 'package:appointment_booking/features/payment/presentation/payment_cubit.dart';
 import 'package:appointment_booking/features/payment/presentation/payment_state.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:appointment_booking/core/routing/route_names.dart';
 
 class CardPaymentScreen extends StatefulWidget {
@@ -21,7 +23,7 @@ class CardPaymentScreen extends StatefulWidget {
 }
 
 class _CardPaymentScreenState extends State<CardPaymentScreen> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   bool _isLoading = true;
   bool _isCancelling = false;
 
@@ -32,24 +34,35 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
       context.read<PaymentCubit>().startListening(widget.bookingId);
     });
 
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (String url) {
-            if (mounted) {
-              setState(() {
-                _isLoading = false;
-              });
-            }
-          },
-        ),
-      )
-      ..loadRequest(
-        Uri.parse(
-          'https://accept.paymob.com/api/acceptance/iframes/917362?payment_token=${widget.paymentToken}',
-        ),
-      );
+    final paymentUrl =
+        'https://accept.paymob.com/api/acceptance/iframes/917362?payment_token=${widget.paymentToken}';
+
+    if (kIsWeb) {
+      launchUrl(Uri.parse(paymentUrl), mode: LaunchMode.externalApplication);
+      // Ensure state updates slightly so user sees wait UI
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      });
+    } else {
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageFinished: (String url) {
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
+          ),
+        )
+        ..loadRequest(Uri.parse(paymentUrl));
+    }
   }
 
   Future<void> _cancelAndPop() async {
@@ -112,7 +125,17 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
           ),
           body: Stack(
             children: [
-              WebViewWidget(controller: _controller),
+              if (_controller != null) WebViewWidget(controller: _controller!),
+              if (_controller == null)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Text(
+                      'Please complete the payment in the browser window.\n\nKeep this page open.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               if (_isLoading || _isCancelling)
                 const Center(child: CircularProgressIndicator()),
             ],

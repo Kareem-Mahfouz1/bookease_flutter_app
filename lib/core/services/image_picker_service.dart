@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:appointment_booking/core/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,6 +13,10 @@ class ImagePickerService {
     final pickedFile = await _picker.pickImage(source: source);
 
     if (pickedFile == null) return null;
+
+    // image_cropper might not support web smoothly without extra config,
+    // so we return the file immediately correctly for Web.
+    if (kIsWeb) return pickedFile;
 
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: pickedFile.path,

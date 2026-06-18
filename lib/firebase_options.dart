@@ -17,19 +17,13 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -58,5 +52,25 @@ class DefaultFirebaseOptions {
     messagingSenderId: '121715619546',
     projectId: 'bookease-39d4d',
     storageBucket: 'bookease-39d4d.firebasestorage.app',
+  );
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCJGBNrM8WiOK5Htf49xLMLNZmyefuH9lI',
+    appId: '1:121715619546:web:b853ea1abc9bd7de8d97e3',
+    messagingSenderId: '121715619546',
+    projectId: 'bookease-39d4d',
+    authDomain: 'bookease-39d4d.firebaseapp.com',
+    storageBucket: 'bookease-39d4d.firebasestorage.app',
+    measurementId: 'G-R9S388ZTLT',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDU80mf7-99REVYpJZSqWgvXbcV3XoxmPg',
+    appId: '1:121715619546:ios:688f90720e0231708d97e3',
+    messagingSenderId: '121715619546',
+    projectId: 'bookease-39d4d',
+    storageBucket: 'bookease-39d4d.firebasestorage.app',
+    androidClientId: '121715619546-nai11aeup2dljiua7n6nfgrraovstpf5.apps.googleusercontent.com',
+    iosClientId: '121715619546-vemtak6gaubr0sgs205oavmka4m86b6p.apps.googleusercontent.com',
+    iosBundleId: 'com.example.appointmentBooking',
   );
 }

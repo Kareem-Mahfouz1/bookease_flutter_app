@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:appointment_booking/core/exceptions/app_exceptions.dart';
 import 'package:appointment_booking/core/models/result.dart';
 import 'package:appointment_booking/core/services/firestore_service.dart';
@@ -108,7 +108,7 @@ class ProfileRepository {
     required String uid,
     required AppUser currentUser,
     String? newName,
-    File? imageFile,
+    XFile? imageFile,
   }) async {
     try {
       Map<String, dynamic> updateData = {};
