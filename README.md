@@ -2,6 +2,12 @@
 
 A full-featured Flutter mobile application for booking clinic appointments, built as a portfolio project demonstrating production-level architecture, Firebase integration, and real-world booking system design.
 
+## Download
+
+[![Latest Release](https://img.shields.io/github/v/release/Kareem-Mahfouz1/appointment_booking?label=Latest%20Release&style=for-the-badge)](https://github.com/Kareem-Mahfouz1/appointment_booking/releases/latest)
+
+Download the latest APK for Android from the [Releases page](https://github.com/Kareem-Mahfouz1/appointment_booking/releases/latest).
+
 ## Screenshots
 
 | Splash | Login | Home |
